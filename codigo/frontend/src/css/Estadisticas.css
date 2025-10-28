@@ -1,0 +1,107 @@
+/* Layout general */
+.stats-dashboard {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* Sidebar */
+.stats-sidebar {
+  width: 240px;
+  background-color: rgba(20, 20, 20, 0.95);
+  color: #fff;
+  padding: 20px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-sidebar h3 {
+  margin-top: 60px;
+  margin-bottom: 30px;
+  font-size: 20px;
+  padding-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.stats-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  transition: background 0.2s;
+}
+
+.stats-item:hover {
+  background-color: #34495e;
+}
+
+.stats-item.activo {
+  background-color: #c0c8d1;
+  color: #000000;
+  font-weight: bold;
+}
+
+/* Panel principal */
+.stats-main {
+  flex-grow: 1;
+  padding: 30px;
+  overflow-x: auto;
+}
+
+.stats-main h2 {
+  margin-bottom: 20px;
+}
+
+/* Filtros */
+.stats-filtros {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stats-filtros input {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* Tabla */
+.stats-table-container {
+  overflow-x: auto;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.stats-table th {
+  background-color: #f0f0f0;
+}
+
+
+.total-general-tabla {
+  font-weight: bold;
+  background-color: #d1dbe7;
+}
+
+.subtotal-tabla {
+  background-color: #e6e8ec60;
+}

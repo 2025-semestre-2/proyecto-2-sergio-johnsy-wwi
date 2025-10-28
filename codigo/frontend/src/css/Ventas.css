@@ -1,0 +1,171 @@
+/* FacturaClara.css */
+
+.factura-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 30px;
+  font-family: Arial, sans-serif;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  color: #333;
+}
+
+.factura-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.factura-logo {
+  max-width: 150px;
+}
+
+.factura-logo img {
+  width: 100%;
+  height: auto;
+}
+
+.factura-empresa {
+  text-align: left;
+}
+
+.factura-empresa h1 {
+  margin: 0;
+  color:  #0d53af;
+  font-size: 22px;
+}
+
+.factura-empresa p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.factura-secciones {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.factura-secciones > div {
+  width: 48%;
+}
+
+.factura-secciones h3 {
+  color: #1a73e8;
+  margin-bottom: 8px;
+  font-size: 16px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4px;
+}
+
+.factura-secciones p {
+  margin: 3px 0;
+  font-size: 14px;
+}
+
+.factura-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+
+.factura-table th,
+.factura-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.factura-table th {
+  background-color: #f2f2f2;
+}
+
+.factura-table tfoot td {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.factura-totales {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 25px;
+  border-top: 2px solid #7e7e7e;
+  padding-top: 10px;
+  gap: 20px;
+}
+
+
+.factura-totales div {
+  width: 250px;
+}
+
+.factura-totales p {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+}
+
+.factura-total {
+  border-top: 2px solid #7e7e7e;
+  padding-top: 10px;
+  margin-top: 15px;
+}
+
+.btn-volver {
+  display: inline-block;
+  padding: 8px 12px;
+  background-color: #1976d2;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
+.btn-volver:hover {
+  background-color: #155a9c;
+}
+
+.btn-descargar {
+  display: inline-block;
+  padding: 8px 14px;
+  background-color: #1976d2;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 13px;
+  transition: background-color 0.2s ease;
+}
+
+.btn-descargar:hover {
+  background-color: #0c457e;
+}
+
+@media print {
+  .btn-volver {
+    display: none;
+  }
+
+  .factura-container {
+    border: none;
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .navbar {
+    display: none;
+  }
+
+  .btn-descargar {
+    visibility: hidden;
+  }
+
+  .floating-btn {
+    display: none;
+  }
+}

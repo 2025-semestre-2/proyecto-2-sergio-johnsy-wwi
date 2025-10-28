@@ -1,0 +1,50 @@
+import { useState } from 'react'
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import Navbar from './components/Navbar';
+
+import Home from "./pages/Home.jsx";
+import Clientes from "./pages/Clientes.jsx";
+import Proveedores from "./pages/Proveedores.jsx";
+import Inventarios from "./pages/Inventarios.jsx";
+import Ventas from "./pages/Ventas.jsx";
+import Estadisticas from "./pages/Estadisticas.jsx";
+
+import DetalleCliente from './pages/Detalles/DetalleCliente.jsx';
+import DetalleProveedor from './pages/Detalles/DetalleProveedor.jsx';
+import DetalleInventario from './pages/Detalles/DetalleInventario.jsx';
+import DetalleVentas from './pages/Detalles/DetalleVenta.jsx';
+
+import EditarProducto from './pages/Detalles/EditarProducto.jsx';
+import AgregarProducto from './pages/Detalles/AgregarProducto.jsx';
+
+import Error from './pages/Error.jsx';
+import './App.css'
+
+function App() {
+
+  return (
+    <>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/clientes" element={<Clientes />} />
+          <Route path="/proveedores" element={<Proveedores />} />
+          <Route path="/inventarios" element={<Inventarios />} />
+          <Route path="/ventas" element={<Ventas />} />
+          <Route path="/estadisticas" element={<Estadisticas />} />
+
+          <Route path="/clientes/:id" element={<DetalleCliente />} />
+          <Route path="/proveedores/:id" element={<DetalleProveedor />} />
+          <Route path="/inventarios/:id" element={<DetalleInventario />} />
+          <Route path="/ventas/:id" element={<DetalleVentas />} />
+
+          <Route path="/inventarios/editar/:id" element={<EditarProducto />} />
+          <Route path="/agregarproducto" element={<AgregarProducto />} />
+
+          <Route path="*" element={<Error />} />
+        </Routes>
+    </>
+  );
+}
+
+export default App

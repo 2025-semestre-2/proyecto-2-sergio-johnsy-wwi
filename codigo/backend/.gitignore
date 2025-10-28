@@ -1,0 +1,16 @@
+# Node / Backend
+node_modules/
+.env
+.DS_Store
+npm-debug.log
+yarn-error.log
+
+/dist
+/.vite
+*.local
+*.log
+.vscode/
+
+*.DS_Store
+
+Thumbs.db

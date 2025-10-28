@@ -1,0 +1,82 @@
+.bienvenida {
+    font-size: 32px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 80px;
+    padding: 20px 10px;
+    color: #333;
+}
+
+.sections-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* DOS COLUMNAS */
+    gap: 20px;
+    margin: 50px 80px;
+}
+
+/* Centrar la última tarjeta si es impar */
+.center-last {
+    grid-column: 1 / -1;
+    justify-self: center;
+}
+
+.section-block {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    cursor: pointer;
+}
+
+.section-block:hover {
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.section-block:hover > .section-details {
+    transform: translateX(5px);
+    transition: transform 0.2s ease;
+}
+
+/* Contenedor interno */
+.section-details {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.section-block:hover {
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.section-icon {
+    font-size: 40px;
+    color: #1976d2;
+    margin-right: 10px;
+}
+
+.section-content h2 {
+    margin: 0 0 8px;
+    color: #0d53af;
+    font-size: 20px;
+}
+
+.section-content p {
+    margin: 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.section-details {
+    display: flex;
+}
+
+/* RESPONSIVE: UNA COLUMNA EN MÓVIL */
+@media (max-width: 768px) {
+    .sections-container {
+        grid-template-columns: 1fr;
+    }
+    .center-last {
+        grid-column: auto;
+        justify-self: auto;
+    }
+}

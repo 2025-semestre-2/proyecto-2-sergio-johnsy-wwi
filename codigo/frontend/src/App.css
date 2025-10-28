@@ -1,0 +1,265 @@
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+html, body {
+  margin: 30px 0 0 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+.page {
+  font-family: Arial, sans-serif;
+  margin: 90px 30px 30px;
+  padding: 70px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: black;
+  text-align: center;
+}
+
+
+
+/* ESTILOS PARA PÁGINAS CON TABLAS */
+
+.estilos-page {
+  padding: 30px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+h2 {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.table-container {
+  margin-top: 20px;
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  background-color: white;
+}
+
+.estilos-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+  font-size: 14px;
+}
+
+.estilos-table th, .estilos-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.estilos-table thead {
+  background-color: #4a4a4a;
+  color: white;
+  font-weight: 500;
+}
+
+.estilos-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.estilos-table tbody tr:nth-child(even) {
+  background-color: #fdfdfd;
+}
+
+.estilos-table tbody tr:hover {
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+/* Paginado compacto */
+.paginado {
+  margin-top: 15px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.paginado button {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid #4a4a4a;
+  background-color: white;
+  color: #4a4a4a;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.paginado button:hover {
+  background-color: #4a4a4a;
+  color: white;
+}
+
+.paginado button:disabled {
+  background-color: #e0e0e0;
+  color: #9e9e9e;
+  cursor: default;
+}
+
+#pagina-input {
+  width: 50px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 14px;
+}
+
+#pagina-input:focus {
+  outline: none;
+  border-color: rgba(105, 105, 105, 0.5);
+  box-shadow: 0 0 5px rgba(105, 105, 105, 0.5);
+}
+
+
+/* Controles de búsqueda y filtros */
+.estilos-filtros {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 15px 0 25px 0;
+}
+
+/* Buscador izquierda */
+.busqueda-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 4px 8px;
+  background-color: #fff;
+}
+
+.busqueda-input {
+  border: none;
+  outline: none;
+  padding: 6px 8px;
+  width: 220px;
+  font-size: 14px;
+}
+
+/* Contenedor de filtros a la derecha */
+.filtros-selects {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Wrapper para select + icono */
+.filtro-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0 6px; /* padding vertical cero para alinear con altura */
+  background-color: #fff;
+  height: 38px; /* altura fija igual a la de los select */
+}
+
+/* Select transparente para que tome la altura del wrapper */
+.filtro-select {
+  border: none;
+  outline: none;
+  padding: 6px 10px;
+  font-size: 14px;
+  background: transparent;
+  height: 100%;
+}
+
+/* Botón Limpiar igual alto que los select */
+.btn-limpiar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px; /* padding horizontal solo */
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #f5f5f5;
+  cursor: pointer;
+  transition: 0.2s;
+  height: 38px; /* igual que los select */
+}
+
+.btn-limpiar:hover {
+  background-color: #e0e0e0;
+}
+
+/* Iconos */
+.icono-filtro, .icono-busqueda, .icono-limpiar {
+  font-size: 14px;
+  color: #555;
+}
+
+/* Filtros de fechas y montos */
+.filtro-wrap input[type="date"],
+.filtro-wrap input[type="number"] {
+  border: none;
+  outline: none;
+  padding: 6px 8px;
+  font-size: 14px;
+  background-color: transparent;
+  height: 100%;
+  width: 120px; /* ancho fijo para inputs de monto y fecha */
+}
+
+/* Ajuste de placeholder */
+.filtro-wrap input::placeholder {
+  color: #999;
+  font-size: 13px;
+}
+
+/* Etiquetas opcionales dentro del wrapper */
+.filtro-wrap label {
+  font-size: 13px;
+  color: #555;
+  margin-right: 4px;
+}
+
+/* Ajuste responsive: si no caben todos los filtros en una línea */
+@media (max-width: 900px) {
+  .filtros-selects {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .filtro-wrap {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0 8px;
+  }
+  
+  .filtro-wrap input,
+  .filtro-wrap select {
+    width: 100%;
+  }
+  
+  .btn-limpiar {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+
+
+/* Fin filtros */
+
+/* FIN ESTILOS PARA PÁGINAS CON TABLAS */
