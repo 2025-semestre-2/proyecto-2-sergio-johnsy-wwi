@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import Navbar from './components/Navbar';
 
 import Home from "./pages/Home.jsx";
+import Login from "./pages/login.jsx";
 import Clientes from "./pages/Clientes.jsx";
 import Proveedores from "./pages/Proveedores.jsx";
 import Inventarios from "./pages/Inventarios.jsx";
@@ -21,12 +22,23 @@ import Error from './pages/Error.jsx';
 import './App.css'
 
 function App() {
+  const location = useLocation();
+  const hideNavbar = location.pathname === "/login";
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const sesion = localStorage.getItem("sesion");
+    if (!sesion && location.pathname !== "/login") {
+      navigate("/login");
+    }
+  }, [location, navigate]);
 
   return (
     <>
-        <Navbar />
+        {!hideNavbar && <Navbar />}
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/proveedores" element={<Proveedores />} />
           <Route path="/inventarios" element={<Inventarios />} />
