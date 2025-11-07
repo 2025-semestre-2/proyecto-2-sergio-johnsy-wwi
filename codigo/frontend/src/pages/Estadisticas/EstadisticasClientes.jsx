@@ -1,5 +1,6 @@
 // EstadisticasClientes.jsx
 import React, { useEffect, useState } from "react";
+import { FaSearch } from "react-icons/fa";
 import "../../css/Estadisticas.css";
 
 export default function EstadisticasClientes() {
@@ -67,18 +68,17 @@ export default function EstadisticasClientes() {
   return (
     <div className="stats-main">
       <div className="stats-table-container">
+        <div className="filtro-texto" style={{ marginBottom: "10px" }}>
+          <FaSearch className="icono-busqueda" />
+          <input
+            type="text"
+            placeholder="Filtrar por cliente o categoría..."
+            value={filtroTexto}
+            onChange={(e) => setFiltroTexto(e.target.value)}
+          />
+        </div>
         {loading ? <p>Cargando...</p> : (
           <>
-            {/* Input de filtro */}
-            <div className="filtro-texto" style={{ marginBottom: "10px" }}>
-              <input
-                type="text"
-                placeholder="Filtrar por cliente o categoría..."
-                value={filtroTexto}
-                onChange={(e) => setFiltroTexto(e.target.value)}
-              />
-            </div>
-
             <table className="stats-table">
               <thead>
                 <tr>
@@ -91,7 +91,7 @@ export default function EstadisticasClientes() {
               </thead>
               <tbody>
                 {visible.map((row, idx) => (
-                  <tr key={idx}>
+                  <tr key={row.IDCliente + "-" + row.Categoria + "-" + idx}>
                     <td className={row.EsTotalGeneral ? "total-general-tabla" : row.EsSubtotalPorCliente ? "subtotal-tabla" : ""}>{row.NombreCliente}</td>
                     <td className={row.EsTotalGeneral ? "total-general-tabla" : row.EsSubtotalPorCliente ? "subtotal-tabla" : ""}>{row.Categoria}</td>
                     <td className={row.EsTotalGeneral ? "total-general-tabla" : row.EsSubtotalPorCliente ? "subtotal-tabla" : ""}>{row.MontoMaximo}</td>

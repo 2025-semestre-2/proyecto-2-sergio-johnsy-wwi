@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { FaSearch } from "react-icons/fa";
 import "../../css/Estadisticas.css";
 
 export default function TopProductos() {
@@ -25,12 +26,15 @@ export default function TopProductos() {
   return (
     <div className="stats-main">
       <div className="stats-filtros">
-        <input
-          type="number"
-          placeholder="Filtrar por año"
-          value={anio || ""}
-          onChange={e => setAnio(e.target.value ? Number(e.target.value) : null)}
-        />
+        <div className="filtro-especial" style={{ marginBottom: "10px" }}>
+          <FaSearch className="icono-busqueda" />
+          <input
+            type="number"
+            placeholder="Filtrar por año"
+            value={anio || ""}
+            onChange={e => setAnio(e.target.value ? Number(e.target.value) : null)}
+          />
+        </div>
       </div>
 
       <div className="stats-table-container">

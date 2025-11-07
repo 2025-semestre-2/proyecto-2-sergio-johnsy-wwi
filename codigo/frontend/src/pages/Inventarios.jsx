@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaSearch, FaFilter, FaBroom } from "react-icons/fa";
+import { FaSearch, FaFilter, FaBroom, FaPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import "../css/Inventarios.css";
 
@@ -88,7 +88,12 @@ export default function Inventarios() {
 
   return (
     <div className="estilos-page">
-      <h2>Inventarios</h2>
+      <div className="barra-titulo">
+        <h2>Inventarios</h2>
+        <Link to={`/inventarios/nuevo/`} className="btn-insertar">
+          <FaPlus /> Insertar nuevo
+        </Link>
+      </div>
 
       <div className="estilos-filtros">
         <div className="busqueda-wrap">

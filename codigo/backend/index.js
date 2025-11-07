@@ -9,7 +9,7 @@ app.use(cors());
 
 //Para Linux
 const config = {
-    server: '172.29.1.78',
+    server: '172.22.193.85',
     authentication: {
         type: 'default',
         options: {
@@ -23,7 +23,7 @@ const config = {
         trustServerCertificate: true
     }
 };
-
+  
 function ejecutarSP(nombreSP, parametros, res) {
   const resultados = [];
   const connection = new Connection(config);
