@@ -1,12 +1,12 @@
 use WideWorldImporters
 GO
 
-CREATE DATABASE SJSucursal
-CREATE DATABASE LimSucursal
+CREATE DATABASE Sucursal_SJ
+CREATE DATABASE Sucursal_LI
 CREATE DATABASE Corporativo
 GO
 
-USE SJSucursal
+USE Sucursal_SJ
 GO
 
 CREATE SCHEMA Application
@@ -45,7 +45,7 @@ CREATE TABLE Application.People(
 )
 GO
 CREATE TABLE Sales.BuyingGroups(
-	BuyingGroupID int NOT NULL PRIMARY KEY,
+	BuyingGroupID int NOT NULL IDENTITY PRIMARY KEY,
 	BuyingGroupName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE Sales.CustomerCategories(
 	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
 )
 CREATE TABLE Application.Countries (
-	CountryID int NOT NULL PRIMARY KEY,
+	CountryID int NOT NULL IDENTITY PRIMARY KEY,
 	CountryName nvarchar(60) NOT NULL,
 	FormalName nvarchar(60) NOT NULL,
 	IsoAlpha3Code nvarchar(3) NULL,
@@ -80,7 +80,7 @@ CREATE TABLE Application.Countries (
 )
 
 CREATE TABLE Application.StateProvinces(
-	StateProvinceID int NOT NULL PRIMARY KEY,
+	StateProvinceID int NOT NULL IDENTITY PRIMARY KEY,
 	StateProvinceCode nvarchar(5) NOT NULL,
 	StateProvinceName nvarchar(50) NOT NULL,
 	CountryID int NOT NULL FOREIGN KEY REFERENCES Application.Countries(CountryID),
@@ -95,7 +95,7 @@ CREATE TABLE Application.StateProvinces(
 )
 
 CREATE TABLE Application.Cities (
-	CityID int NOT NULL PRIMARY KEY,
+	CityID int NOT NULL IDENTITY PRIMARY KEY,
 	CityName nvarchar(50) NOT NULL,
 	StateProvinceID int NOT NULL FOREIGN KEY REFERENCES Application.StateProvinces(StateProvinceID),
 	Location geography NULL,
@@ -107,7 +107,7 @@ CREATE TABLE Application.Cities (
 )
 
 CREATE TABLE Application.DeliveryMethods(
-	DeliveryMethodID int NOT NULL PRIMARY KEY,
+	DeliveryMethodID int NOT NULL IDENTITY PRIMARY KEY,
 	DeliveryMethodName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -136,7 +136,7 @@ CREATE TABLE Sales.Customers (
 GO
 
 CREATE TABLE Purchasing.SupplierCategories(
-	SupplierCategoryID int NOT NULL PRIMARY KEY,
+	SupplierCategoryID int NOT NULL IDENTITY PRIMARY KEY,
 	SupplierCategoryName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -146,7 +146,7 @@ CREATE TABLE Purchasing.SupplierCategories(
 )
 
 CREATE TABLE Purchasing.Suppliers(
-	SupplierID int NOT NULL PRIMARY KEY,
+	SupplierID int NOT NULL IDENTITY PRIMARY KEY,
 	SupplierName nvarchar(100) NOT NULL,
 	SupplierCategoryID int NOT NULL FOREIGN KEY REFERENCES Purchasing.SupplierCategories(SupplierCategoryID),
 	PrimaryContactPersonID int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
@@ -179,7 +179,7 @@ CREATE TABLE Purchasing.Suppliers(
 )
 
 CREATE TABLE Warehouse.Colors(
-	ColorID int NOT NULL PRIMARY KEY,
+	ColorID int NOT NULL IDENTITY PRIMARY KEY,
 	ColorName nvarchar(20) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -189,7 +189,7 @@ CREATE TABLE Warehouse.Colors(
 )
 
 CREATE TABLE Warehouse.PackageTypes(
-	PackageTypeID int NOT NULL PRIMARY KEY,
+	PackageTypeID int NOT NULL IDENTITY PRIMARY KEY,
 	PackageTypeName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -198,7 +198,7 @@ CREATE TABLE Warehouse.PackageTypes(
 )
 
 CREATE TABLE Warehouse.StockItems (
-	StockItemID int NOT NULL PRIMARY KEY,
+	StockItemID int NOT NULL IDENTITY PRIMARY KEY,
 	StockItemName nvarchar(100) NOT NULL,
 	SupplierID int NOT NULL FOREIGN KEY REFERENCES Purchasing.Suppliers(SupplierID),
 	ColorID int NULL FOREIGN KEY REFERENCES Warehouse.Colors(ColorID),
@@ -228,7 +228,7 @@ CREATE TABLE Warehouse.StockItems (
 GO
 
 CREATE TABLE Warehouse.StockGroups (
-    StockGroupID INT NOT NULL PRIMARY KEY,
+    StockGroupID INT NOT NULL IDENTITY PRIMARY KEY,
     StockGroupName NVARCHAR(50) NOT NULL,
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
     ValidFrom DATETIME2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -237,8 +237,8 @@ CREATE TABLE Warehouse.StockGroups (
 )
 GO
 
-CREATE TABLE Warehouse.StockItemsStockGroups(
-    StockItemStockGroupID INT NOT NULL PRIMARY KEY,
+CREATE TABLE Warehouse.StockItemStockGroups(
+    StockItemStockGroupID INT NOT NULL IDENTITY PRIMARY KEY,
     StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
     StockGroupID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockGroups(StockGroupID),
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
@@ -257,6 +257,93 @@ CREATE TABLE Warehouse.StockItemHoldings (
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
     LastEditedWhen DATETIME2(7) NOT NULL
 )
+GO
+
+CREATE TABLE Sales.Orders (
+    OrderID INT NOT NULL IDENTITY PRIMARY KEY,
+    CustomerID INT NOT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    SalespersonPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    PickedByPersonID INT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    ContactPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    BackorderOrderID INT NULL FOREIGN KEY REFERENCES Sales.Orders(OrderID),
+    OrderDate DATE NOT NULL,
+    ExpectedDeliveryDate DATE NOT NULL,
+    CustomerPurchaseOrderNumber NVARCHAR(20) NULL,
+    IsUndersupplyBackordered BIT NOT NULL,
+    Comments NVARCHAR(MAX) NULL,
+    DeliveryInstructions NVARCHAR(MAX) NULL,
+    InternalComments NVARCHAR(MAX) NULL,
+    PickingCompletedWhen DATETIME2(7) NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+CREATE TABLE Sales.OrderLines (
+    OrderLineID INT NOT NULL IDENTITY PRIMARY KEY,
+    OrderID INT NOT NULL FOREIGN KEY REFERENCES Sales.Orders(OrderID),
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    Description NVARCHAR(100) NOT NULL,
+    PackageTypeID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.PackageTypes(PackageTypeID),
+    Quantity INT NOT NULL,
+    UnitPrice DECIMAL(18, 2) NULL,
+    TaxRate DECIMAL(18, 3) NOT NULL,
+    PickedQuantity INT NOT NULL,
+    PickingCompletedWhen DATETIME2(7) NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+
+
+CREATE TABLE Sales.Invoices (
+    InvoiceID INT NOT NULL IDENTITY PRIMARY KEY,
+    CustomerID INT NOT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    BillToCustomerID INT NOT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    OrderID INT NULL FOREIGN KEY REFERENCES Sales.Orders(OrderID),
+    DeliveryMethodID INT NOT NULL FOREIGN KEY REFERENCES Application.DeliveryMethods(DeliveryMethodID),
+    ContactPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    AccountsPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    SalespersonPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    PackedByPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    InvoiceDate DATE NOT NULL,
+    CustomerPurchaseOrderNumber NVARCHAR(20) NULL,
+    IsCreditNote BIT NOT NULL,
+    CreditNoteReason NVARCHAR(MAX) NULL,
+    Comments NVARCHAR(MAX) NULL,
+    DeliveryInstructions NVARCHAR(MAX) NULL,
+    InternalComments NVARCHAR(MAX) NULL,
+    TotalDryItems INT NOT NULL,
+    TotalChillerItems INT NOT NULL,
+    DeliveryRun NVARCHAR(5) NULL,
+    RunPosition NVARCHAR(5) NULL,
+    ReturnedDeliveryData NVARCHAR(MAX) NULL,
+    ConfirmedDeliveryTime AS (TRY_CONVERT(DATETIME2(7), JSON_VALUE(ReturnedDeliveryData, N'$.DeliveredWhen'), 126)),
+    ConfirmedReceivedBy AS (JSON_VALUE(ReturnedDeliveryData, N'$.ReceivedBy')),
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+CREATE TABLE Sales.InvoiceLines (
+    InvoiceLineID INT NOT NULL IDENTITY PRIMARY KEY,
+    InvoiceID INT NOT NULL FOREIGN KEY REFERENCES Sales.Invoices(InvoiceID),
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    Description NVARCHAR(100) NOT NULL,
+    PackageTypeID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.PackageTypes(PackageTypeID),
+    Quantity INT NOT NULL,
+    UnitPrice DECIMAL(18, 2) NULL,
+    TaxRate DECIMAL(18, 3) NOT NULL,
+    TaxAmount DECIMAL(18, 2) NOT NULL,
+    LineProfit DECIMAL(18, 2) NOT NULL,
+    ExtendedPrice DECIMAL(18, 2) NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+
 
 
 CREATE TABLE Users(
@@ -273,7 +360,7 @@ GO
 
 
 
-USE LimSucursal
+USE Sucursal_LI
 GO
 CREATE SCHEMA Application
 go
@@ -310,7 +397,7 @@ CREATE TABLE Application.People(
 )
 GO
 CREATE TABLE Sales.BuyingGroups(
-	BuyingGroupID int NOT NULL PRIMARY KEY,
+	BuyingGroupID int NOT NULL IDENTITY PRIMARY KEY,
 	BuyingGroupName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -327,7 +414,7 @@ CREATE TABLE Sales.CustomerCategories(
 	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
 )
 CREATE TABLE Application.Countries (
-	CountryID int NOT NULL PRIMARY KEY,
+	CountryID int NOT NULL IDENTITY PRIMARY KEY,
 	CountryName nvarchar(60) NOT NULL,
 	FormalName nvarchar(60) NOT NULL,
 	IsoAlpha3Code nvarchar(3) NULL,
@@ -345,7 +432,7 @@ CREATE TABLE Application.Countries (
 )
 
 CREATE TABLE Application.StateProvinces(
-	StateProvinceID int NOT NULL PRIMARY KEY,
+	StateProvinceID int NOT NULL IDENTITY PRIMARY KEY,
 	StateProvinceCode nvarchar(5) NOT NULL,
 	StateProvinceName nvarchar(50) NOT NULL,
 	CountryID int NOT NULL FOREIGN KEY REFERENCES Application.Countries(CountryID),
@@ -360,7 +447,7 @@ CREATE TABLE Application.StateProvinces(
 )
 
 CREATE TABLE Application.Cities (
-	CityID int NOT NULL PRIMARY KEY,
+	CityID int NOT NULL IDENTITY PRIMARY KEY,
 	CityName nvarchar(50) NOT NULL,
 	StateProvinceID int NOT NULL FOREIGN KEY REFERENCES Application.StateProvinces(StateProvinceID),
 	Location geography NULL,
@@ -372,7 +459,7 @@ CREATE TABLE Application.Cities (
 )
 
 CREATE TABLE Application.DeliveryMethods(
-	DeliveryMethodID int NOT NULL PRIMARY KEY,
+	DeliveryMethodID int NOT NULL IDENTITY PRIMARY KEY,
 	DeliveryMethodName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -401,7 +488,7 @@ CREATE TABLE Sales.Customers (
 GO
 
 CREATE TABLE Purchasing.SupplierCategories(
-	SupplierCategoryID int NOT NULL PRIMARY KEY,
+	SupplierCategoryID int NOT NULL IDENTITY PRIMARY KEY,
 	SupplierCategoryName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -411,7 +498,7 @@ CREATE TABLE Purchasing.SupplierCategories(
 )
 
 CREATE TABLE Purchasing.Suppliers(
-	SupplierID int NOT NULL PRIMARY KEY,
+	SupplierID int NOT NULL IDENTITY PRIMARY KEY,
 	SupplierName nvarchar(100) NOT NULL,
 	SupplierCategoryID int NOT NULL FOREIGN KEY REFERENCES Purchasing.SupplierCategories(SupplierCategoryID),
 	PrimaryContactPersonID int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
@@ -444,7 +531,7 @@ CREATE TABLE Purchasing.Suppliers(
 )
 
 CREATE TABLE Warehouse.Colors(
-	ColorID int NOT NULL PRIMARY KEY,
+	ColorID int NOT NULL IDENTITY PRIMARY KEY,
 	ColorName nvarchar(20) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -454,7 +541,7 @@ CREATE TABLE Warehouse.Colors(
 )
 
 CREATE TABLE Warehouse.PackageTypes(
-	PackageTypeID int NOT NULL PRIMARY KEY,
+	PackageTypeID int NOT NULL IDENTITY PRIMARY KEY,
 	PackageTypeName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -463,7 +550,7 @@ CREATE TABLE Warehouse.PackageTypes(
 )
 
 CREATE TABLE Warehouse.StockItems (
-	StockItemID int NOT NULL PRIMARY KEY,
+	StockItemID int NOT NULL IDENTITY PRIMARY KEY,
 	StockItemName nvarchar(100) NOT NULL,
 	SupplierID int NOT NULL FOREIGN KEY REFERENCES Purchasing.Suppliers(SupplierID),
 	ColorID int NULL FOREIGN KEY REFERENCES Warehouse.Colors(ColorID),
@@ -493,7 +580,7 @@ CREATE TABLE Warehouse.StockItems (
 GO
 
 CREATE TABLE Warehouse.StockGroups (
-    StockGroupID INT NOT NULL PRIMARY KEY,
+    StockGroupID INT NOT NULL IDENTITY PRIMARY KEY,
     StockGroupName NVARCHAR(50) NOT NULL,
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
     ValidFrom DATETIME2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -502,8 +589,8 @@ CREATE TABLE Warehouse.StockGroups (
 )
 GO
 
-CREATE TABLE Warehouse.StockGroupsProducto(
-    StockItemStockGroupID INT NOT NULL PRIMARY KEY,
+CREATE TABLE Warehouse.StockItemStockGroups(
+    StockItemStockGroupID INT NOT NULL IDENTITY PRIMARY KEY,
     StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
     StockGroupID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockGroups(StockGroupID),
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
@@ -522,6 +609,92 @@ CREATE TABLE Warehouse.StockItemHoldings (
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
     LastEditedWhen DATETIME2(7) NOT NULL
 )
+GO
+
+CREATE TABLE Sales.Orders (
+    OrderID INT NOT NULL IDENTITY PRIMARY KEY,
+    CustomerID INT NOT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    SalespersonPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    PickedByPersonID INT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    ContactPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    BackorderOrderID INT NULL FOREIGN KEY REFERENCES Sales.Orders(OrderID),
+    OrderDate DATE NOT NULL,
+    ExpectedDeliveryDate DATE NOT NULL,
+    CustomerPurchaseOrderNumber NVARCHAR(20) NULL,
+    IsUndersupplyBackordered BIT NOT NULL,
+    Comments NVARCHAR(MAX) NULL,
+    DeliveryInstructions NVARCHAR(MAX) NULL,
+    InternalComments NVARCHAR(MAX) NULL,
+    PickingCompletedWhen DATETIME2(7) NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+CREATE TABLE Sales.OrderLines (
+    OrderLineID INT NOT NULL IDENTITY PRIMARY KEY,
+    OrderID INT NOT NULL FOREIGN KEY REFERENCES Sales.Orders(OrderID),
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    Description NVARCHAR(100) NOT NULL,
+    PackageTypeID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.PackageTypes(PackageTypeID),
+    Quantity INT NOT NULL,
+    UnitPrice DECIMAL(18, 2) NULL,
+    TaxRate DECIMAL(18, 3) NOT NULL,
+    PickedQuantity INT NOT NULL,
+    PickingCompletedWhen DATETIME2(7) NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+
+CREATE TABLE Sales.Invoices (
+    InvoiceID INT NOT NULL IDENTITY PRIMARY KEY,
+    CustomerID INT NOT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    BillToCustomerID INT NOT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    OrderID INT NULL FOREIGN KEY REFERENCES Sales.Orders(OrderID),
+    DeliveryMethodID INT NOT NULL FOREIGN KEY REFERENCES Application.DeliveryMethods(DeliveryMethodID),
+    ContactPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    AccountsPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    SalespersonPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    PackedByPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    InvoiceDate DATE NOT NULL,
+    CustomerPurchaseOrderNumber NVARCHAR(20) NULL,
+    IsCreditNote BIT NOT NULL,
+    CreditNoteReason NVARCHAR(MAX) NULL,
+    Comments NVARCHAR(MAX) NULL,
+    DeliveryInstructions NVARCHAR(MAX) NULL,
+    InternalComments NVARCHAR(MAX) NULL,
+    TotalDryItems INT NOT NULL,
+    TotalChillerItems INT NOT NULL,
+    DeliveryRun NVARCHAR(5) NULL,
+    RunPosition NVARCHAR(5) NULL,
+    ReturnedDeliveryData NVARCHAR(MAX) NULL,
+    ConfirmedDeliveryTime AS (TRY_CONVERT(DATETIME2(7), JSON_VALUE(ReturnedDeliveryData, N'$.DeliveredWhen'), 126)),
+    ConfirmedReceivedBy AS (JSON_VALUE(ReturnedDeliveryData, N'$.ReceivedBy')),
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+CREATE TABLE Sales.InvoiceLines (
+    InvoiceLineID INT NOT NULL IDENTITY PRIMARY KEY,
+    InvoiceID INT NOT NULL FOREIGN KEY REFERENCES Sales.Invoices(InvoiceID),
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    Description NVARCHAR(100) NOT NULL,
+    PackageTypeID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.PackageTypes(PackageTypeID),
+    Quantity INT NOT NULL,
+    UnitPrice DECIMAL(18, 2) NULL,
+    TaxRate DECIMAL(18, 3) NOT NULL,
+    TaxAmount DECIMAL(18, 2) NOT NULL,
+    LineProfit DECIMAL(18, 2) NOT NULL,
+    ExtendedPrice DECIMAL(18, 2) NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+
 
 
 CREATE TABLE Users(
@@ -577,7 +750,7 @@ CREATE TABLE Application.People(
 )
 GO
 CREATE TABLE Sales.BuyingGroups(
-	BuyingGroupID int NOT NULL PRIMARY KEY,
+	BuyingGroupID int NOT NULL IDENTITY PRIMARY KEY,
 	BuyingGroupName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -594,7 +767,7 @@ CREATE TABLE Sales.CustomerCategories(
 	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
 )
 CREATE TABLE Application.Countries (
-	CountryID int NOT NULL PRIMARY KEY,
+	CountryID int NOT NULL IDENTITY PRIMARY KEY,
 	CountryName nvarchar(60) NOT NULL,
 	FormalName nvarchar(60) NOT NULL,
 	IsoAlpha3Code nvarchar(3) NULL,
@@ -612,7 +785,7 @@ CREATE TABLE Application.Countries (
 )
 
 CREATE TABLE Application.StateProvinces(
-	StateProvinceID int NOT NULL PRIMARY KEY,
+	StateProvinceID int NOT NULL IDENTITY PRIMARY KEY,
 	StateProvinceCode nvarchar(5) NOT NULL,
 	StateProvinceName nvarchar(50) NOT NULL,
 	CountryID int NOT NULL FOREIGN KEY REFERENCES Application.Countries(CountryID),
@@ -627,7 +800,7 @@ CREATE TABLE Application.StateProvinces(
 )
 
 CREATE TABLE Application.Cities (
-	CityID int NOT NULL PRIMARY KEY,
+	CityID int NOT NULL IDENTITY PRIMARY KEY,
 	CityName nvarchar(50) NOT NULL,
 	StateProvinceID int NOT NULL FOREIGN KEY REFERENCES Application.StateProvinces(StateProvinceID),
 	Location geography NULL,
@@ -639,7 +812,7 @@ CREATE TABLE Application.Cities (
 )
 
 CREATE TABLE Application.DeliveryMethods(
-	DeliveryMethodID int NOT NULL PRIMARY KEY,
+	DeliveryMethodID int NOT NULL IDENTITY PRIMARY KEY,
 	DeliveryMethodName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -671,7 +844,7 @@ CREATE TABLE Sales.Customers (
 GO
 
 CREATE TABLE Purchasing.SupplierCategories(
-	SupplierCategoryID int NOT NULL PRIMARY KEY,
+	SupplierCategoryID int NOT NULL IDENTITY PRIMARY KEY,
 	SupplierCategoryName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -681,7 +854,7 @@ CREATE TABLE Purchasing.SupplierCategories(
 )
 
 CREATE TABLE Purchasing.Suppliers(
-	SupplierID int NOT NULL PRIMARY KEY,
+	SupplierID int NOT NULL IDENTITY PRIMARY KEY,
 	SupplierName nvarchar(100) NOT NULL,
 	SupplierCategoryID int NOT NULL FOREIGN KEY REFERENCES Purchasing.SupplierCategories(SupplierCategoryID),
 	PrimaryContactPersonID int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
@@ -714,7 +887,7 @@ CREATE TABLE Purchasing.Suppliers(
 )
 
 CREATE TABLE Warehouse.Colors(
-	ColorID int NOT NULL PRIMARY KEY,
+	ColorID int NOT NULL IDENTITY PRIMARY KEY,
 	ColorName nvarchar(20) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -724,7 +897,7 @@ CREATE TABLE Warehouse.Colors(
 )
 
 CREATE TABLE Warehouse.PackageTypes(
-	PackageTypeID int NOT NULL PRIMARY KEY,
+	PackageTypeID int NOT NULL IDENTITY PRIMARY KEY,
 	PackageTypeName nvarchar(50) NOT NULL,
 	LastEditedBy int NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
 	ValidFrom datetime2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -733,7 +906,7 @@ CREATE TABLE Warehouse.PackageTypes(
 )
 
 CREATE TABLE Warehouse.StockItems (
-	StockItemID int NOT NULL PRIMARY KEY,
+	StockItemID int NOT NULL IDENTITY PRIMARY KEY,
 	StockItemName nvarchar(100) NOT NULL,
 	SupplierID int NOT NULL FOREIGN KEY REFERENCES Purchasing.Suppliers(SupplierID),
 	ColorID int NULL FOREIGN KEY REFERENCES Warehouse.Colors(ColorID),
@@ -763,7 +936,7 @@ CREATE TABLE Warehouse.StockItems (
 GO
 
 CREATE TABLE Warehouse.StockGroups (
-    StockGroupID INT NOT NULL PRIMARY KEY,
+    StockGroupID INT NOT NULL IDENTITY PRIMARY KEY,
     StockGroupName NVARCHAR(50) NOT NULL,
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
     ValidFrom DATETIME2(7) GENERATED ALWAYS AS ROW START NOT NULL,
@@ -772,8 +945,8 @@ CREATE TABLE Warehouse.StockGroups (
 )
 GO
 
-CREATE TABLE Warehouse.StockGroupsProducto(
-    StockItemStockGroupID INT NOT NULL PRIMARY KEY,
+CREATE TABLE Warehouse.StockItemStockGroups(
+    StockItemStockGroupID INT NOT NULL IDENTITY PRIMARY KEY,
     StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
     StockGroupID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockGroups(StockGroupID),
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
@@ -794,6 +967,89 @@ CREATE TABLE Warehouse.StockItemHoldings (
 )
 
 
+CREATE TABLE Sales.Orders (
+    OrderID INT NOT NULL IDENTITY PRIMARY KEY,
+    CustomerID INT NOT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    SalespersonPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    PickedByPersonID INT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    ContactPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    BackorderOrderID INT NULL FOREIGN KEY REFERENCES Sales.Orders(OrderID),
+    OrderDate DATE NOT NULL,
+    ExpectedDeliveryDate DATE NOT NULL,
+    CustomerPurchaseOrderNumber NVARCHAR(20) NULL,
+    IsUndersupplyBackordered BIT NOT NULL,
+    Comments NVARCHAR(MAX) NULL,
+    DeliveryInstructions NVARCHAR(MAX) NULL,
+    InternalComments NVARCHAR(MAX) NULL,
+    PickingCompletedWhen DATETIME2(7) NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+CREATE TABLE Sales.OrderLines (
+    OrderLineID INT NOT NULL IDENTITY PRIMARY KEY,
+    OrderID INT NOT NULL FOREIGN KEY REFERENCES Sales.Orders(OrderID),
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    Description NVARCHAR(100) NOT NULL,
+    PackageTypeID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.PackageTypes(PackageTypeID),
+    Quantity INT NOT NULL,
+    UnitPrice DECIMAL(18, 2) NULL,
+    TaxRate DECIMAL(18, 3) NOT NULL,
+    PickedQuantity INT NOT NULL,
+    PickingCompletedWhen DATETIME2(7) NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+
+CREATE TABLE Sales.Invoices (
+    InvoiceID INT NOT NULL IDENTITY PRIMARY KEY,
+    CustomerID INT NOT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    BillToCustomerID INT NOT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    OrderID INT NULL FOREIGN KEY REFERENCES Sales.Orders(OrderID),
+    DeliveryMethodID INT NOT NULL FOREIGN KEY REFERENCES Application.DeliveryMethods(DeliveryMethodID),
+    ContactPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    AccountsPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    SalespersonPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    PackedByPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    InvoiceDate DATE NOT NULL,
+    CustomerPurchaseOrderNumber NVARCHAR(20) NULL,
+    IsCreditNote BIT NOT NULL,
+    CreditNoteReason NVARCHAR(MAX) NULL,
+    Comments NVARCHAR(MAX) NULL,
+    DeliveryInstructions NVARCHAR(MAX) NULL,
+    InternalComments NVARCHAR(MAX) NULL,
+    TotalDryItems INT NOT NULL,
+    TotalChillerItems INT NOT NULL,
+    DeliveryRun NVARCHAR(5) NULL,
+    RunPosition NVARCHAR(5) NULL,
+    ReturnedDeliveryData NVARCHAR(MAX) NULL,
+    ConfirmedDeliveryTime AS (TRY_CONVERT(DATETIME2(7), JSON_VALUE(ReturnedDeliveryData, N'$.DeliveredWhen'), 126)),
+    ConfirmedReceivedBy AS (JSON_VALUE(ReturnedDeliveryData, N'$.ReceivedBy')),
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+CREATE TABLE Sales.InvoiceLines (
+    InvoiceLineID INT NOT NULL IDENTITY PRIMARY KEY,
+    InvoiceID INT NOT NULL FOREIGN KEY REFERENCES Sales.Invoices(InvoiceID),
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    Description NVARCHAR(100) NOT NULL,
+    PackageTypeID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.PackageTypes(PackageTypeID),
+    Quantity INT NOT NULL,
+    UnitPrice DECIMAL(18, 2) NULL,
+    TaxRate DECIMAL(18, 3) NOT NULL,
+    TaxAmount DECIMAL(18, 2) NOT NULL,
+    LineProfit DECIMAL(18, 2) NOT NULL,
+    ExtendedPrice DECIMAL(18, 2) NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
 CREATE TABLE Users(
 	IdUser int IDENTITY PRIMARY KEY NOT NULL,
     Username NVARCHAR(50) NOT NULL ,
@@ -808,6 +1064,6 @@ CREATE TABLE Users(
 
 -- POR SI ACASO
 USE master
-DROP DATABASE SJSucursal
-DROP DATABASE LimSucursal
+DROP DATABASE Sucursal_SJ
+DROP DATABASE Sucursal_LI
 DROP DATABASE Corporativo
