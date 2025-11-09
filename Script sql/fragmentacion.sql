@@ -120,6 +120,16 @@ CREATE TABLE Application.DeliveryMethods(
 	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
 )
 
+CREATE TABLE Application.TransactionTypes (
+    TransactionTypeID INT NOT NULL IDENTITY PRIMARY KEY,
+    TransactionTypeName NVARCHAR(50) NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    ValidFrom DATETIME2(7) GENERATED ALWAYS AS ROW START NOT NULL,
+    ValidTo DATETIME2(7) GENERATED ALWAYS AS ROW END NOT NULL,
+    PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
+)
+
+
 --Solo datos que no sean sensibles
 CREATE TABLE Sales.Customers (
 	CustomerID int IDENTITY PRIMARY KEY NOT NULL, 
@@ -183,6 +193,26 @@ CREATE TABLE Purchasing.Suppliers(
 	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
 )
 
+
+CREATE TABLE Purchasing.PurchaseOrders (
+    PurchaseOrderID INT NOT NULL IDENTITY PRIMARY KEY,
+    SupplierID INT NOT NULL FOREIGN KEY REFERENCES Purchasing.Suppliers(SupplierID),
+    OrderDate DATE NOT NULL,
+    DeliveryMethodID INT NOT NULL FOREIGN KEY REFERENCES Application.DeliveryMethods(DeliveryMethodID),
+    ContactPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    ExpectedDeliveryDate DATE NULL,
+    SupplierReference NVARCHAR(20) NULL,
+    IsOrderFinalized BIT NOT NULL,
+    Comments NVARCHAR(MAX) NULL,
+    InternalComments NVARCHAR(MAX) NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+
+
+
 CREATE TABLE Warehouse.Colors(
 	ColorID int NOT NULL IDENTITY PRIMARY KEY,
 	ColorName nvarchar(20) NOT NULL,
@@ -192,6 +222,7 @@ CREATE TABLE Warehouse.Colors(
 	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
 
 )
+GO
 
 CREATE TABLE Warehouse.PackageTypes(
 	PackageTypeID int NOT NULL IDENTITY PRIMARY KEY,
@@ -262,6 +293,23 @@ CREATE TABLE Warehouse.StockItemHoldings (
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
     LastEditedWhen DATETIME2(7) NOT NULL,
 	Branch NVARCHAR(10) NOT NULL
+)
+GO
+
+
+CREATE TABLE Purchasing.PurchaseOrderLines (
+    PurchaseOrderLineID INT NOT NULL IDENTITY PRIMARY KEY,
+    PurchaseOrderID INT NOT NULL FOREIGN KEY REFERENCES Purchasing.PurchaseOrders(PurchaseOrderID),
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    OrderedOuters INT NOT NULL,
+    Description NVARCHAR(100) NOT NULL,
+    ReceivedOuters INT NOT NULL,
+    PackageTypeID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.PackageTypes(PackageTypeID),
+    ExpectedUnitPricePerOuter DECIMAL(18, 2) NULL,
+    LastReceiptDate DATE NULL,
+    IsOrderLineFinalized BIT NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
 )
 GO
 
@@ -350,6 +398,21 @@ CREATE TABLE Sales.InvoiceLines (
 )
 GO
 
+
+CREATE TABLE Warehouse.StockItemTransactions (
+    StockItemTransactionID INT NOT NULL PRIMARY KEY,
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    TransactionTypeID INT NOT NULL FOREIGN KEY REFERENCES Application.TransactionTypes(TransactionTypeID),
+    CustomerID INT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    InvoiceID INT NULL FOREIGN KEY REFERENCES Sales.Invoices(InvoiceID),
+    SupplierID INT NULL FOREIGN KEY REFERENCES Purchasing.Suppliers(SupplierID),
+    PurchaseOrderID INT NULL FOREIGN KEY REFERENCES Purchasing.PurchaseOrders(PurchaseOrderID),
+    TransactionOccurredWhen DATETIME2(7) NOT NULL,
+    Quantity DECIMAL(18,3) NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
 
 
 
@@ -477,6 +540,16 @@ CREATE TABLE Application.DeliveryMethods(
 	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
 )
 
+CREATE TABLE Application.TransactionTypes (
+    TransactionTypeID INT NOT NULL IDENTITY PRIMARY KEY,
+    TransactionTypeName NVARCHAR(50) NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    ValidFrom DATETIME2(7) GENERATED ALWAYS AS ROW START NOT NULL,
+    ValidTo DATETIME2(7) GENERATED ALWAYS AS ROW END NOT NULL,
+    PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
+)
+
+
 --Solo datos que no sean sensibles
 CREATE TABLE Sales.Customers (
 	CustomerID int IDENTITY PRIMARY KEY NOT NULL, 
@@ -540,6 +613,26 @@ CREATE TABLE Purchasing.Suppliers(
 	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
 )
 
+
+CREATE TABLE Purchasing.PurchaseOrders (
+    PurchaseOrderID INT NOT NULL IDENTITY PRIMARY KEY,
+    SupplierID INT NOT NULL FOREIGN KEY REFERENCES Purchasing.Suppliers(SupplierID),
+    OrderDate DATE NOT NULL,
+    DeliveryMethodID INT NOT NULL FOREIGN KEY REFERENCES Application.DeliveryMethods(DeliveryMethodID),
+    ContactPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    ExpectedDeliveryDate DATE NULL,
+    SupplierReference NVARCHAR(20) NULL,
+    IsOrderFinalized BIT NOT NULL,
+    Comments NVARCHAR(MAX) NULL,
+    InternalComments NVARCHAR(MAX) NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+
+
+
 CREATE TABLE Warehouse.Colors(
 	ColorID int NOT NULL IDENTITY PRIMARY KEY,
 	ColorName nvarchar(20) NOT NULL,
@@ -549,6 +642,7 @@ CREATE TABLE Warehouse.Colors(
 	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
 
 )
+GO
 
 CREATE TABLE Warehouse.PackageTypes(
 	PackageTypeID int NOT NULL IDENTITY PRIMARY KEY,
@@ -622,6 +716,23 @@ CREATE TABLE Warehouse.StockItemHoldings (
 )
 GO
 
+
+CREATE TABLE Purchasing.PurchaseOrderLines (
+    PurchaseOrderLineID INT NOT NULL IDENTITY PRIMARY KEY,
+    PurchaseOrderID INT NOT NULL FOREIGN KEY REFERENCES Purchasing.PurchaseOrders(PurchaseOrderID),
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    OrderedOuters INT NOT NULL,
+    Description NVARCHAR(100) NOT NULL,
+    ReceivedOuters INT NOT NULL,
+    PackageTypeID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.PackageTypes(PackageTypeID),
+    ExpectedUnitPricePerOuter DECIMAL(18, 2) NULL,
+    LastReceiptDate DATE NULL,
+    IsOrderLineFinalized BIT NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
 CREATE TABLE Sales.Orders (
     OrderID INT NOT NULL IDENTITY PRIMARY KEY,
     CustomerID INT NOT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
@@ -657,6 +768,7 @@ CREATE TABLE Sales.OrderLines (
     LastEditedWhen DATETIME2(7) NOT NULL
 )
 GO
+
 
 
 CREATE TABLE Sales.Invoices (
@@ -706,6 +818,21 @@ CREATE TABLE Sales.InvoiceLines (
 )
 GO
 
+
+CREATE TABLE Warehouse.StockItemTransactions (
+    StockItemTransactionID INT NOT NULL PRIMARY KEY,
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    TransactionTypeID INT NOT NULL FOREIGN KEY REFERENCES Application.TransactionTypes(TransactionTypeID),
+    CustomerID INT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    InvoiceID INT NULL FOREIGN KEY REFERENCES Sales.Invoices(InvoiceID),
+    SupplierID INT NULL FOREIGN KEY REFERENCES Purchasing.Suppliers(SupplierID),
+    PurchaseOrderID INT NULL FOREIGN KEY REFERENCES Purchasing.PurchaseOrders(PurchaseOrderID),
+    TransactionOccurredWhen DATETIME2(7) NOT NULL,
+    Quantity DECIMAL(18,3) NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
 
 
 
@@ -835,6 +962,16 @@ CREATE TABLE Application.DeliveryMethods(
 	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
 )
 
+CREATE TABLE Application.TransactionTypes (
+    TransactionTypeID INT NOT NULL IDENTITY PRIMARY KEY,
+    TransactionTypeName NVARCHAR(50) NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    ValidFrom DATETIME2(7) GENERATED ALWAYS AS ROW START NOT NULL,
+    ValidTo DATETIME2(7) GENERATED ALWAYS AS ROW END NOT NULL,
+    PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
+)
+GO
+
 -- los datos sensibles van aqui
 CREATE TABLE Sales.Customers (
 	CustomerID int IDENTITY PRIMARY KEY NOT NULL, 
@@ -900,6 +1037,24 @@ CREATE TABLE Purchasing.Suppliers(
 	ValidTo datetime2(7) GENERATED ALWAYS AS ROW END NOT NULL,
 	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
 )
+
+CREATE TABLE Purchasing.PurchaseOrders (
+    PurchaseOrderID INT NOT NULL IDENTITY PRIMARY KEY,
+    SupplierID INT NOT NULL FOREIGN KEY REFERENCES Purchasing.Suppliers(SupplierID),
+    OrderDate DATE NOT NULL,
+    DeliveryMethodID INT NOT NULL FOREIGN KEY REFERENCES Application.DeliveryMethods(DeliveryMethodID),
+    ContactPersonID INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    ExpectedDeliveryDate DATE NULL,
+    SupplierReference NVARCHAR(20) NULL,
+    IsOrderFinalized BIT NOT NULL,
+    Comments NVARCHAR(MAX) NULL,
+    InternalComments NVARCHAR(MAX) NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+
 
 CREATE TABLE Warehouse.Colors(
 	ColorID int NOT NULL IDENTITY PRIMARY KEY,
@@ -981,7 +1136,24 @@ CREATE TABLE Warehouse.StockItemHoldings (
     LastEditedWhen DATETIME2(7) NOT NULL,
 	Branch NVARCHAR(10) NOT NULL
 )
+GO
 
+
+CREATE TABLE Purchasing.PurchaseOrderLines (
+    PurchaseOrderLineID INT NOT NULL IDENTITY PRIMARY KEY,
+    PurchaseOrderID INT NOT NULL FOREIGN KEY REFERENCES Purchasing.PurchaseOrders(PurchaseOrderID),
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    OrderedOuters INT NOT NULL,
+    Description NVARCHAR(100) NOT NULL,
+    ReceivedOuters INT NOT NULL,
+    PackageTypeID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.PackageTypes(PackageTypeID),
+    ExpectedUnitPricePerOuter DECIMAL(18, 2) NULL,
+    LastReceiptDate DATE NULL,
+    IsOrderLineFinalized BIT NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
 
 CREATE TABLE Sales.Orders (
     OrderID INT NOT NULL IDENTITY PRIMARY KEY,
@@ -1062,6 +1234,21 @@ CREATE TABLE Sales.InvoiceLines (
     TaxAmount DECIMAL(18, 2) NOT NULL,
     LineProfit DECIMAL(18, 2) NOT NULL,
     ExtendedPrice DECIMAL(18, 2) NOT NULL,
+    LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
+    LastEditedWhen DATETIME2(7) NOT NULL
+)
+GO
+
+CREATE TABLE Warehouse.StockItemTransactions (
+    StockItemTransactionID INT NOT NULL PRIMARY KEY,
+    StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
+    TransactionTypeID INT NOT NULL FOREIGN KEY REFERENCES Application.TransactionTypes(TransactionTypeID),
+    CustomerID INT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
+    InvoiceID INT NULL FOREIGN KEY REFERENCES Sales.Invoices(InvoiceID),
+    SupplierID INT NULL FOREIGN KEY REFERENCES Purchasing.Suppliers(SupplierID),
+    PurchaseOrderID INT NULL FOREIGN KEY REFERENCES Purchasing.PurchaseOrders(PurchaseOrderID),
+    TransactionOccurredWhen DATETIME2(7) NOT NULL,
+    Quantity DECIMAL(18,3) NOT NULL,
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
     LastEditedWhen DATETIME2(7) NOT NULL
 )
