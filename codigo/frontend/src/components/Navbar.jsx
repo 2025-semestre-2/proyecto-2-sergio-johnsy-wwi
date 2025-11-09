@@ -16,7 +16,14 @@ function Navbar() {
     if (sesion) {
       const datos = JSON.parse(sesion);
       const nombre = datos.usuario || "Invitado";
-      const sede = datos.sede || "Sin sede";
+      let sede = datos.sede || "Sin sede";
+      if (sede === "CORP") {
+        sede = "Corporativa";
+      } else if (sede === "SJ") {
+        sede = "San José";
+      } else if (sede === "LI") {
+        sede = "Limón";
+      }
       setUserData({ nombre, sede });
     } else {
       setUserData({ nombre: "Invitado", sede: "Sin sede" });

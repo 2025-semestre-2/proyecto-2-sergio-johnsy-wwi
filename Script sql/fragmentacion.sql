@@ -6,6 +6,11 @@ CREATE DATABASE Sucursal_LI
 CREATE DATABASE Corporativo
 GO
 
+
+-- ===============================================================================
+-- 									SAN JOSÉ
+-- ===============================================================================
+
 USE Sucursal_SJ
 GO
 
@@ -255,7 +260,8 @@ CREATE TABLE Warehouse.StockItemHoldings (
     ReorderLevel INT NOT NULL,
     TargetStockLevel INT NOT NULL,
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
-    LastEditedWhen DATETIME2(7) NOT NULL
+    LastEditedWhen DATETIME2(7) NOT NULL,
+	Branch NVARCHAR(10) NOT NULL
 )
 GO
 
@@ -322,7 +328,8 @@ CREATE TABLE Sales.Invoices (
     ConfirmedDeliveryTime AS (TRY_CONVERT(DATETIME2(7), JSON_VALUE(ReturnedDeliveryData, N'$.DeliveredWhen'), 126)),
     ConfirmedReceivedBy AS (JSON_VALUE(ReturnedDeliveryData, N'$.ReceivedBy')),
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
-    LastEditedWhen DATETIME2(7) NOT NULL
+    LastEditedWhen DATETIME2(7) NOT NULL,
+	Branch NVARCHAR(10) NOT NULL
 )
 GO
 
@@ -359,6 +366,9 @@ CREATE TABLE Users(
 GO
 
 
+-- ===============================================================================
+-- 									LIMÓN
+-- ===============================================================================
 
 USE Sucursal_LI
 GO
@@ -607,7 +617,8 @@ CREATE TABLE Warehouse.StockItemHoldings (
     ReorderLevel INT NOT NULL,
     TargetStockLevel INT NOT NULL,
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
-    LastEditedWhen DATETIME2(7) NOT NULL
+    LastEditedWhen DATETIME2(7) NOT NULL,
+	Branch NVARCHAR(10) NOT NULL
 )
 GO
 
@@ -673,7 +684,8 @@ CREATE TABLE Sales.Invoices (
     ConfirmedDeliveryTime AS (TRY_CONVERT(DATETIME2(7), JSON_VALUE(ReturnedDeliveryData, N'$.DeliveredWhen'), 126)),
     ConfirmedReceivedBy AS (JSON_VALUE(ReturnedDeliveryData, N'$.ReceivedBy')),
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
-    LastEditedWhen DATETIME2(7) NOT NULL
+    LastEditedWhen DATETIME2(7) NOT NULL,
+	Branch NVARCHAR(10) NOT NULL
 )
 GO
 
@@ -710,6 +722,9 @@ CREATE TABLE Users(
 GO
 
 
+-- ===============================================================================
+-- 									CORPORATIVO
+-- ===============================================================================
 
 USE Corporativo
 GO
@@ -963,7 +978,8 @@ CREATE TABLE Warehouse.StockItemHoldings (
     ReorderLevel INT NOT NULL,
     TargetStockLevel INT NOT NULL,
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
-    LastEditedWhen DATETIME2(7) NOT NULL
+    LastEditedWhen DATETIME2(7) NOT NULL,
+	Branch NVARCHAR(10) NOT NULL
 )
 
 
@@ -1029,7 +1045,8 @@ CREATE TABLE Sales.Invoices (
     ConfirmedDeliveryTime AS (TRY_CONVERT(DATETIME2(7), JSON_VALUE(ReturnedDeliveryData, N'$.DeliveredWhen'), 126)),
     ConfirmedReceivedBy AS (JSON_VALUE(ReturnedDeliveryData, N'$.ReceivedBy')),
     LastEditedBy INT NOT NULL FOREIGN KEY REFERENCES Application.People(PersonID),
-    LastEditedWhen DATETIME2(7) NOT NULL
+    LastEditedWhen DATETIME2(7) NOT NULL,
+	Branch NVARCHAR(10) NOT NULL
 )
 GO
 
@@ -1050,7 +1067,7 @@ CREATE TABLE Sales.InvoiceLines (
 )
 GO
 
-CREATE TABLE Users(
+CREATE TABLE Application.Users(
 	IdUser int IDENTITY PRIMARY KEY NOT NULL,
     Username NVARCHAR(50) NOT NULL ,
     HashedPassword VARBINARY(64) NULL,   
@@ -1063,7 +1080,7 @@ CREATE TABLE Users(
 
 
 -- POR SI ACASO
-USE master
-DROP DATABASE Sucursal_SJ
-DROP DATABASE Sucursal_LI
-DROP DATABASE Corporativo
+-- USE master
+-- DROP DATABASE Sucursal_SJ
+-- DROP DATABASE Sucursal_LI
+-- DROP DATABASE Corporativo

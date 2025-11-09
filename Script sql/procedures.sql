@@ -214,7 +214,7 @@ CREATE PROCEDURE getInventarioSimple
 AS
 BEGIN
     SET NOCOUNT ON;
-
+    
     SELECT 
         product.StockItemID AS IDProducto,
         product.StockItemName AS NombreProducto,
@@ -854,63 +854,64 @@ END;
 GO
 
 
-CREATE PROCEDURE crearStockItem
-    @StockItemName NVARCHAR(255),
-    @SupplierID INT = NULL,
-    @Brand NVARCHAR(255) = NULL,
-    @Size NVARCHAR(50) = NULL,
-    @ColorID INT = NULL,
-    @UnitPackageID INT = NULL,
-    @OuterPackageID INT = NULL,
-    @UnitPrice DECIMAL(18,2) = 0,
-    @RecommendedRetailPrice DECIMAL(18,2) = 0,
-    @TaxRate DECIMAL(5,2) = 0,
-    @TypicalWeightPerUnit DECIMAL(10,2) = 0,
-    @CustomFields NVARCHAR(MAX) = NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    INSERT INTO [Warehouse].[StockItems] (
-        StockItemName,
-        SupplierID,
-        Brand,
-        Size,
-        ColorID,
-        UnitPackageID,
-        OuterPackageID,
-        UnitPrice,
-        RecommendedRetailPrice,
-        TaxRate,
-        TypicalWeightPerUnit,
-        CustomFields,
-        LeadTimeDays,
-        QuantityPerOuter,
-        IsChillerStock,
-        LastEditedBy,
-        ValidFrom,
-        ValidTo
-    )
-    VALUES (
-        @StockItemName,
-        @SupplierID,
-        @Brand,
-        @Size,
-        @ColorID,
-        @UnitPackageID,
-        @OuterPackageID,
-        @UnitPrice,
-        @RecommendedRetailPrice,
-        @TaxRate,
-        @TypicalWeightPerUnit,
-        @CustomFields,
-        0, -- LeadTimeDays
-        DEFAULT, -- QuantityPerOuter
-        DEFAULT, -- IsChillerStock
-        DEFAULT, -- LastEditedBy
-        DEFAULT, -- ValidFrom
-        DEFAULT  -- ValidTo
-    );
-
-    SELECT SCOPE_IDENTITY() AS StockItemID;
-END
+--CREATE PROCEDURE crearStockItem
+--    @StockItemName NVARCHAR(255),
+--    @SupplierID INT = NULL,
+--    @Brand NVARCHAR(255) = NULL,
+--    @Size NVARCHAR(50) = NULL,
+--    @ColorID INT = NULL,
+--    @UnitPackageID INT = NULL,
+--    @OuterPackageID INT = NULL,
+--    @UnitPrice DECIMAL(18,2) = 0,
+--    @RecommendedRetailPrice DECIMAL(18,2) = 0,
+--    @TaxRate DECIMAL(5,2) = 0,
+--    @TypicalWeightPerUnit DECIMAL(10,2) = 0,
+--    @CustomFields NVARCHAR(MAX) = NULL
+--AS
+--BEGIN
+--    SET NOCOUNT ON;
+--
+--    INSERT INTO [Warehouse].[StockItems] (
+--        StockItemName,
+--        SupplierID,
+--        Brand,
+--        Size,
+--        ColorID,
+--        UnitPackageID,
+--        OuterPackageID,
+--        UnitPrice,
+--        RecommendedRetailPrice,
+--        TaxRate,
+--        TypicalWeightPerUnit,
+--        CustomFields,
+--        LeadTimeDays,
+--        QuantityPerOuter,
+--        IsChillerStock,
+--        LastEditedBy,
+--        ValidFrom,
+--        ValidTo
+--    )
+--    VALUES (
+--        @StockItemName,
+--        @SupplierID,
+--        @Brand,
+--        @Size,
+--        @ColorID,
+--        @UnitPackageID,
+--        @OuterPackageID,
+--        @UnitPrice,
+--        @RecommendedRetailPrice,
+--        @TaxRate,
+--        @TypicalWeightPerUnit,
+--        @CustomFields,
+--        0, -- LeadTimeDays
+--        DEFAULT, -- QuantityPerOuter
+--        DEFAULT, -- IsChillerStock
+--        DEFAULT, -- LastEditedBy
+--        DEFAULT, -- ValidFrom
+--        DEFAULT  -- ValidTo
+--    );
+--
+--    SELECT SCOPE_IDENTITY() AS StockItemID;
+--END;
+--GO

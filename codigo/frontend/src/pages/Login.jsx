@@ -22,15 +22,31 @@ export default function Login() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (usuario && contrasena && sede) {
-      localStorage.setItem("sesion", JSON.stringify({ usuario, sede }));
-      navigate("/");
-    } else {
-      alert("Por favor, completa todos los campos");
-    }
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!usuario || !contrasena || !sede) {
+    alert("Por favor, completa todos los campos");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:3000/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario, password: contrasena, sede }),
+    });
+
+    if (!res.ok) alert("Credenciales inválidas");
+    const data = await res.json();
+    localStorage.setItem("sesion", JSON.stringify({ usuario, sede }));
+    alert(data.mensaje);
+    navigate("/");
+  } catch (err) {
+    alert(err.message);
+  }
+};
+
 
   useEffect(() => {
     document.body.classList.add("login-page");
@@ -70,9 +86,9 @@ export default function Login() {
           <FaMapMarkerAlt className="input-icon" />
           <select value={sede} onChange={handleChange} name="sede" required>
             <option value="">-- Selecciona tu sede --</option>
-            <option value="Corporativa">Corporativa</option>
-            <option value="San José">San José</option>
-            <option value="Limón">Limón</option>
+            <option value="CORP">Corporativa</option>
+            <option value="SJ">San José</option>
+            <option value="LI">Limón</option>
           </select>
         </div>
 

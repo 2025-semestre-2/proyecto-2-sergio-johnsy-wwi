@@ -2,13 +2,15 @@ const express = require('express');
 const { Connection, Request, TYPES } = require('tedious');
 const app = express();
 const cors = require("cors");
+const { config } = require('dotenv');
+const jwt = require('jsonwebtoken');
 const port = 3000;
 
 app.use(express.json());
 app.use(cors());
 
 //Para Linux
-const config = {
+const configCorp = {
     server: '172.22.193.85',
     authentication: {
         type: 'default',
@@ -23,57 +25,94 @@ const config = {
         trustServerCertificate: true
     }
 };
-  
-function ejecutarSP(nombreSP, parametros, res) {
-  const resultados = [];
-  const connection = new Connection(config);
-  let responded = false; // <-- evita doble envío
 
-  connection.on('connect', (err) => {
-    if (err) {
-      console.error("Error de conexión:", err);
-      if (!responded) {
-        responded = true;
-        console.error("Error de conexión:", err);
-        return res.status(500).json({ error: err.message });
-      }
+const configSucursal = {
+    server: '172.22.193.85',
+    authentication: {
+        type: 'default',
+        options: {
+            userName: 'sa',
+            password: 'Admin2323*'
+        }
+    },
+    options: {
+        database: 'WideWorldImporters',
+        encrypt: false,
+        trustServerCertificate: true
+    }
+};
+
+function ejecutarSP(nombreSP, parametros, req, res, devolver = false) {
+  return new Promise((resolve, reject) => {
+    const resultados = [];
+    const sede = req.user ? req.user.sede : null;
+    let connection = new Connection(configCorp);
+    if (sede) {
+      let configSede = { ...configSucursal };
+      configSede.options.database = "Sucursal" + sede;
+      connection = new Connection(configSede);
     }
 
-    const request = new Request(nombreSP, (err) => {
-      if (err && !responded) {
-        responded = true;
-        console.error("Error al ejecutar el procedimiento almacenado:", err);
-        connection.close();
-        return res.status(400).json({ error: err.message });
-      }
-    });
+    let responded = false;
 
-    request.on('row', (columns) => {
-      const fila = {};
-      columns.forEach((col) => {
-        fila[col.metadata.colName] = col.value;
+    connection.on("connect", (err) => {
+      if (err) {
+        console.error("Error de conexión:", err);
+        if (devolver) return reject(err);
+        if (!responded) {
+          responded = true;
+          res.status(500).json({ error: err.message });
+        }
+        return;
+      }
+
+      const request = new Request(nombreSP, (err) => {
+        if (err) {
+          console.error("Error al ejecutar el procedimiento almacenado:", err);
+          connection.close();
+          if (devolver) reject(err);
+          else if (!responded) {
+            responded = true;
+            res.status(400).json({ error: err.message });
+          }
+        }
       });
-      resultados.push(fila);
-    });
 
-    request.on('requestCompleted', () => {
-      if (!responded) {
-        responded = true;
+      request.on("row", (columns) => {
+        const fila = {};
+        columns.forEach((col) => (fila[col.metadata.colName] = col.value));
+        resultados.push(fila);
+      });
+
+      request.on("requestCompleted", () => {
         connection.close();
-        res.json(resultados);
-      }
+        if (devolver) resolve(resultados);
+        else if (!responded) {
+          responded = true;
+          res.json(resultados);
+        }
+      });
+
+      parametros.forEach((p) => request.addParameter(p[0], p[1], p[2]));
+      connection.callProcedure(request);
     });
 
-    parametros.forEach(param => {
-      request.addParameter(param[0], param[1], param[2]);
-    });
-
-    connection.callProcedure(request);
+    connection.connect();
   });
-
-  connection.connect();
 }
 
+function verificarToken(req, res, next) {
+  const header = req.headers['authorization'];
+  if (!header) return res.status(401).json({ mensaje: "No autorizado" });
+
+  const token = header.split(' ')[1];
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    res.status(403).json({ mensaje: "Token inválido" });
+  }
+}
 
 app.get('/api/getClientesSimple', (req, res) => {
   const { FiltrarNombre, FiltrarCategoria, FiltrarMetodoEntrega } = req.query;
@@ -81,20 +120,20 @@ app.get('/api/getClientesSimple', (req, res) => {
   if (FiltrarNombre) parametros.push(["FiltrarNombre", TYPES.NVarChar, FiltrarNombre]);
   if (FiltrarCategoria) parametros.push(["FiltrarCategoria", TYPES.Int, Number(FiltrarCategoria)]);
   if (FiltrarMetodoEntrega) parametros.push(["FiltrarMetodoEntrega", TYPES.Int, Number(FiltrarMetodoEntrega)]);
-  ejecutarSP("getClientesSimple", parametros, res);
+  ejecutarSP("getClientesSimple", parametros, req, res);
 });
 
 app.get('/api/getCliente/:id', (req, res) => {
   const { id } = req.params;
-  ejecutarSP("getClientePorID", [["CustomerID", TYPES.Int, parseInt(id)]], res);
+  ejecutarSP("getClientePorID", [["CustomerID", TYPES.Int, parseInt(id)]], req, res);
 });
 
 app.get("/api/getCategoriasDeClientes", (req, res) => {
-  ejecutarSP("getCategoriasClientes", [], res);
+  ejecutarSP("getCategoriasClientes", [], req, res);
 });
 
 app.get("/api/getMetodosDeEntrega", (req, res) => {
-  ejecutarSP("getMetodosEntrega", [], res);
+  ejecutarSP("getMetodosEntrega", [], req, res);
 });
 
 
@@ -106,16 +145,16 @@ app.get('/api/getProveedoresSimple', (req, res) => {
   if (FiltrarNombre) parametros.push(["FiltrarNombre", TYPES.NVarChar, FiltrarNombre]);
   if (FiltrarCategoria) parametros.push(["FiltrarCategoria", TYPES.Int, Number(FiltrarCategoria)]);
   if (FiltrarMetodoEntrega) parametros.push(["FiltrarMetodoEntrega", TYPES.Int, Number(FiltrarMetodoEntrega)]);
-  ejecutarSP("getProveedoresSimple", parametros, res);
+  ejecutarSP("getProveedoresSimple", parametros, req, res);
 });
 
 app.get('/api/getProveedor/:id', (req, res) => {
   const { id } = req.params;
-  ejecutarSP("getProveedorPorID", [["SupplierID", TYPES.Int, parseInt(id)]], res);
+  ejecutarSP("getProveedorPorID", [["SupplierID", TYPES.Int, parseInt(id)]], req, res);
 });
 
 app.get("/api/getCategoriasDeProveedores", (req, res) => {
-  ejecutarSP("getCategoriasProveedores", [], res);
+  ejecutarSP("getCategoriasProveedores", [], req, res);
 });
 
 
@@ -127,16 +166,16 @@ app.get('/api/getProductosInventario', (req, res) => {
   if (FiltrarGrupo) parametros.push(["FiltrarGrupo", TYPES.Int, Number(FiltrarGrupo)]);
   if (FiltrarCantidadMinima) parametros.push(["FiltrarCantidadMinima", TYPES.Int, Number(FiltrarCantidadMinima)]);
   if (FiltrarCantidadMaxima) parametros.push(["FiltrarCantidadMaxima", TYPES.Int, Number(FiltrarCantidadMaxima)]);
-  ejecutarSP("getInventarioSimple", parametros, res);
+  ejecutarSP("getInventarioSimple", parametros, req, res);
 });
 
 app.get("/api/getGruposDeProductos", (req, res) => {
-  ejecutarSP("getGruposProductos", [], res);
+  ejecutarSP("getGruposProductos", [], req, res);
 });
 
 app.get('/api/getProductoID/:id', (req, res) => {
   const { id } = req.params;
-  ejecutarSP("getProductoPorID", [["ProductoID", TYPES.Int, parseInt(id)]], res);
+  ejecutarSP("getProductoPorID", [["ProductoID", TYPES.Int, parseInt(id)]], req, res);
 });
 
 
@@ -144,12 +183,12 @@ app.get('/api/getProductoID/:id', (req, res) => {
 
 app.get('/api/getEncabezadoVentaID/:id', (req, res) => {
   const { id } = req.params;
-  ejecutarSP("getEncabezadoVentaPorID", [["NumeroFactura", TYPES.Int, parseInt(id)]], res);
+  ejecutarSP("getEncabezadoVentaPorID", [["NumeroFactura", TYPES.Int, parseInt(id)]], req, res);
 });
 
 app.get('/api/getDetallesVentaID/:id', (req, res) => {
   const { id } = req.params;
-  ejecutarSP("getDetallesVentaPorID", [["NumeroFactura", TYPES.Int, parseInt(id)]], res);
+  ejecutarSP("getDetallesVentaPorID", [["NumeroFactura", TYPES.Int, parseInt(id)]], req, res);
 });
 
 app.get('/api/getVentas', (req, res) => {
@@ -163,7 +202,7 @@ app.get('/api/getVentas', (req, res) => {
   if (FiltrarMontoMaximo) parametros.push(["FiltrarMontoMaximo", TYPES.Money, Number(FiltrarMontoMaximo)]);
   if (Pagina) parametros.push(["Pagina", TYPES.Int, Number(Pagina)]);
   if (FilasPorPagina) parametros.push(["FilasPorPagina", TYPES.Int, Number(FilasPorPagina)]);
-  ejecutarSP("getVentasSimple", parametros, res);
+  ejecutarSP("getVentasSimple", parametros, req, res);
 });
 
 
@@ -171,49 +210,49 @@ app.get('/api/getVentas', (req, res) => {
 
 app.get('/api/getEstadisticasDeProveedores', (req, res) => {
   const { FiltrarTexto } = req.query;
-  ejecutarSP("EstadisticasProveedores", [["FiltrarTexto", TYPES.NVarChar, FiltrarTexto || null]], res);
+  ejecutarSP("EstadisticasProveedores", [["FiltrarTexto", TYPES.NVarChar, FiltrarTexto || null]], req, res);
 });
 
 app.get('/api/getEstadisticasDeClientes', (req, res) => {
   const { FiltrarTexto } = req.query;
-  ejecutarSP("EstadisticasClientes", [["FiltrarTexto", TYPES.NVarChar, FiltrarTexto || null]], res);
+  ejecutarSP("EstadisticasClientes", [["FiltrarTexto", TYPES.NVarChar, FiltrarTexto || null]], req, res);
 });
 
 app.get('/api/getRankingProductos', (req, res) => {
   const { FiltrarAnio } = req.query;
   const parametros = [];
   if (FiltrarAnio) parametros.push(["FiltrarAnio", TYPES.Int, Number(FiltrarAnio)]);
-  ejecutarSP("getTopProductosAnuales", parametros, res);
+  ejecutarSP("getTopProductosAnuales", parametros, req, res);
 });
 
 app.get('/api/getRankingClientes', (req, res) => {
   const { FiltrarAnio } = req.query;
   const parametros = [];
   if (FiltrarAnio) parametros.push(["FiltrarAnio", TYPES.Int, Number(FiltrarAnio)]);
-  ejecutarSP("getTopClientesFacturasAnuales", parametros, res);
+  ejecutarSP("getTopClientesFacturasAnuales", parametros, req, res);
 });
 
 app.get('/api/getRankingProveedores', (req, res) => {
   const { FiltrarAnio } = req.query;
   const parametros = [];
   if (FiltrarAnio) parametros.push(["FiltrarAnio", TYPES.Int, Number(FiltrarAnio)]);
-  ejecutarSP("getTopProveedoresOrdenesAnuales", parametros, res);
+  ejecutarSP("getTopProveedoresOrdenesAnuales", parametros, req, res);
 });
 
 app.get('/api/getTodosProveedores', (req, res) => {
-  ejecutarSP("getProveedores", [], res);
+  ejecutarSP("getProveedores", [], req, res);
 });
 
 app.get('/api/getTodosColores', (req, res) => {
-  ejecutarSP("getColores", [], res);
+  ejecutarSP("getColores", [], req, res);
 });
 
 app.get('/api/getTodasUnidadesEmpaquetamiento', (req, res) => {
-  ejecutarSP("getUnidadesEmpaquetamiento", [], res);
+  ejecutarSP("getUnidadesEmpaquetamiento", [], req, res);
 });
 
 app.get('/api/getTodosGruposProducto', (req, res) => {
-  ejecutarSP("getGruposProducto", [], res);
+  ejecutarSP("getGruposProducto", [], req, res);
 });
 
 
@@ -256,13 +295,13 @@ app.put('/api/editarProducto/:id', (req, res) => {
     ["CantidadDisponible", TYPES.Int, CantidadDisponible || null],
     ["GruposProductoIDs", TYPES.NVarChar, gruposProductoStr]
   ]; 
-  ejecutarSP("editarStockItem", parametros, res);
+  ejecutarSP("editarStockItem", parametros, req, res);
 });
 
 
 app.delete('/api/eliminarProducto/:id', (req, res) => {
   const { id } = req.params;
-  ejecutarSP("eliminarStockItem", [["ProductoID", TYPES.Int, parseInt(id)]], res);
+  ejecutarSP("eliminarStockItem", [["ProductoID", TYPES.Int, parseInt(id)]], req, res);
 });
 
 
@@ -303,7 +342,30 @@ app.post('/api/insertarProducto', (req, res) => {
     ["CustomFields", TYPES.NVarChar, gruposProductoStr]
   ];
 
-  ejecutarSP("crearStockItem", parametros, res);
+  ejecutarSP("crearStockItem", parametros, req, res);
+});
+
+
+app.post('/api/login', async (req, res) => {
+  const { usuario, password, sede } = req.body;
+
+  try {
+    const parametros = [
+      ["Usuario", TYPES.NVarChar, usuario],
+      ["Contrasena", TYPES.NVarChar, password]
+    ];
+
+    const resultado = await ejecutarSP("Login", parametros, req, res, true);
+
+    if (!resultado || resultado.length === 0)
+      return res.status(401).json({ mensaje: "Credenciales inválidas" });
+
+    jwt.sign({ usuario, sede }, process.env.JWT_SECRET, { expiresIn: "8h" });
+    res.json({ mensaje: "Autenticación exitosa" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error en el servidor" });
+  }
 });
 
 
