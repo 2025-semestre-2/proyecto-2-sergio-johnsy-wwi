@@ -17,10 +17,16 @@ export default function Cliente() {
   const [filtroMetodo, setFiltroMetodo] = useState(0);
   const [paginaInput, setNumPaginaInput] = useState(pagina);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
 
     setLoading(true);
-    fetch("http://localhost:3000/api/getCategoriasDeClientes")
+    fetch("http://localhost:3000/api/getCategoriasDeClientes", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => res.json())
       .then((data) => {
         setCategoriasClientes(data);
@@ -29,7 +35,11 @@ export default function Cliente() {
         console.error("Error cargando categorías de clientes:", err);
       });
 
-    fetch("http://localhost:3000/api/getMetodosDeEntrega")
+    fetch("http://localhost:3000/api/getMetodosDeEntrega", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => res.json())
       .then((data) => {
         setMetodosEntrega(data);
@@ -49,7 +59,11 @@ export default function Cliente() {
     if (filtroCategoria) params.append("FiltrarCategoria", filtroCategoria);
     if (filtroMetodo) params.append("FiltrarMetodoEntrega", filtroMetodo);
 
-    fetch(`http://localhost:3000/api/getClientesSimple?${params.toString()}`)
+    fetch(`http://localhost:3000/api/getClientesSimple?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => res.json())
       .then((data) => {
         setClientes(data);

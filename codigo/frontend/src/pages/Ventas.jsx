@@ -21,12 +21,18 @@ export default function Ventas() {
   const [montoMaximo, setMontoMaximo] = useState("");
   const [paginaInput, setNumPaginaInput] = useState(pagina);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
 
     setLoading(true);
 
     //Métodos de entrega
-    fetch("http://localhost:3000/api/getMetodosDeEntrega")
+    fetch("http://localhost:3000/api/getMetodosDeEntrega", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => res.json())
       .then((data) => {
         setMetodosEntrega(data);
@@ -51,7 +57,11 @@ export default function Ventas() {
     params.append("Pagina", pagina);
     params.append("FilasPorPagina", ventasPorPagina);
 
-    fetch(`http://localhost:3000/api/getVentas?${params.toString()}`)
+    fetch(`http://localhost:3000/api/getVentas?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => res.json())
       .then((data) => {
         if (data.error) setVentas([]);

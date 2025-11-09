@@ -40,6 +40,7 @@ export default function Login() {
     if (!res.ok) alert("Credenciales inválidas");
     const data = await res.json();
     localStorage.setItem("sesion", JSON.stringify({ usuario, sede }));
+    localStorage.setItem("token", data.token);
     alert(data.mensaje);
     navigate("/");
   } catch (err) {

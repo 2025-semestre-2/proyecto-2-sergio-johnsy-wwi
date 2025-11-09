@@ -19,10 +19,16 @@ export default function Inventarios() {
   // Control de input de página
   const [paginaInput, setPaginaInput] = useState(pagina);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     setLoading(true);
 
-    fetch("http://localhost:3000/api/getGruposDeProductos")
+    fetch("http://localhost:3000/api/getGruposDeProductos", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => res.json())
       .then((data) => {
         setGrupos(data);
@@ -39,7 +45,11 @@ export default function Inventarios() {
     if (cantidadMinima) params.append("FiltrarCantidadMinima", cantidadMinima);
     if (cantidadMaxima) params.append("FiltrarCantidadMaxima", cantidadMaxima);
 
-    fetch(`http://localhost:3000/api/getProductosInventario?${params.toString()}`)
+    fetch(`http://localhost:3000/api/getProductosInventario?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => res.json())
       .then((data) => {
         setProductos(data);

@@ -12,11 +12,17 @@ export default function DetalleVentas() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     setLoading(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    fetch(`http://localhost:3000/api/getEncabezadoVentaID/${id}`)
+    fetch(`http://localhost:3000/api/getEncabezadoVentaID/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo cargar el encabezado");
         return res.json();
@@ -24,7 +30,11 @@ export default function DetalleVentas() {
       .then((encabezadoData) => {
         setEncabezado(encabezadoData[0]);
 
-        return fetch(`http://localhost:3000/api/getDetallesVentaID/${id}`);
+        return fetch(`http://localhost:3000/api/getDetallesVentaID/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
       })
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo cargar los detalles");

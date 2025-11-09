@@ -20,7 +20,7 @@ const configCorp = {
         }
     },
     options: {
-        database: 'WideWorldImporters',
+        database: 'Corporativo',
         encrypt: false,
         trustServerCertificate: true
     }
@@ -42,16 +42,18 @@ const configSucursal = {
     }
 };
 
-function ejecutarSP(nombreSP, parametros, req, res, devolver = false) {
+function ejecutarSP(nombreSP, parametros, req, res, devolver = false, sede = null) {
   return new Promise((resolve, reject) => {
     const resultados = [];
-    const sede = req.user ? req.user.sede : null;
+    const sedeFinal = sede || (req.user ? req.user.sede : null);
     let connection = new Connection(configCorp);
-    if (sede) {
+    if (sedeFinal) {
       let configSede = { ...configSucursal };
-      configSede.options.database = "Sucursal" + sede;
+      configSede.options.database = "Sucursal_" + sedeFinal;
       connection = new Connection(configSede);
     }
+
+    console.log(`Ejecutando SP: ${nombreSP} en sede: ${sedeFinal || 'Corporativo'}`);
 
     let responded = false;
 
@@ -107,14 +109,14 @@ function verificarToken(req, res, next) {
 
   const token = header.split(' ')[1];
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = jwt.verify(token, "clave"); // reemplazar "clave" por process.env.JWT_SECRET 
     next();
   } catch {
     res.status(403).json({ mensaje: "Token inválido" });
   }
 }
 
-app.get('/api/getClientesSimple', (req, res) => {
+app.get('/api/getClientesSimple', verificarToken, (req, res) => {
   const { FiltrarNombre, FiltrarCategoria, FiltrarMetodoEntrega } = req.query;
   const parametros = [];
   if (FiltrarNombre) parametros.push(["FiltrarNombre", TYPES.NVarChar, FiltrarNombre]);
@@ -128,11 +130,11 @@ app.get('/api/getCliente/:id', (req, res) => {
   ejecutarSP("getClientePorID", [["CustomerID", TYPES.Int, parseInt(id)]], req, res);
 });
 
-app.get("/api/getCategoriasDeClientes", (req, res) => {
+app.get("/api/getCategoriasDeClientes", verificarToken, (req, res) => {
   ejecutarSP("getCategoriasClientes", [], req, res);
 });
 
-app.get("/api/getMetodosDeEntrega", (req, res) => {
+app.get("/api/getMetodosDeEntrega", verificarToken, (req, res) => {
   ejecutarSP("getMetodosEntrega", [], req, res);
 });
 
@@ -355,13 +357,13 @@ app.post('/api/login', async (req, res) => {
       ["Contrasena", TYPES.NVarChar, password]
     ];
 
-    const resultado = await ejecutarSP("Login", parametros, req, res, true);
+    const resultado = await ejecutarSP("sp_login", parametros, req, res, true, sede);
 
     if (!resultado || resultado.length === 0)
       return res.status(401).json({ mensaje: "Credenciales inválidas" });
 
-    jwt.sign({ usuario, sede }, process.env.JWT_SECRET, { expiresIn: "8h" });
-    res.json({ mensaje: "Autenticación exitosa" });
+    const token = jwt.sign({ usuario, sede }, "clave", { expiresIn: "8h" }); // reemplazar "clave" por process.env.JWT_SECRET
+    res.json({ mensaje: "Autenticación exitosa", token });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error en el servidor" });

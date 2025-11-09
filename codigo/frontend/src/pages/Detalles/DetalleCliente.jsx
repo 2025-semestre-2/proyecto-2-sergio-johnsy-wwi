@@ -9,11 +9,17 @@ export default function DetalleCliente() {
   const [cliente, setCliente] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     setLoading(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    fetch(`http://localhost:3000/api/getCliente/${id}`)
+    fetch(`http://localhost:3000/api/getCliente/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      })
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo cargar el cliente");
         return res.json();

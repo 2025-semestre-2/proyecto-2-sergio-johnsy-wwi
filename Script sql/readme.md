@@ -8,4 +8,6 @@ Orden de ejecución:
 4. migracionSJ.sql
 5. migracionLI.sql
 6. credenciales.sql
-7. procedures.sql
+7. proceduresCorp.sql
+8. proceduresSJ.sql
+9. proceduresLI.sql

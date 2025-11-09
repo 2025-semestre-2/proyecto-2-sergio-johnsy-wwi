@@ -11,10 +11,16 @@ export default function DetalleProveedor() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     setLoading(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    fetch(`http://localhost:3000/api/getProveedor/${id}`)
+    fetch(`http://localhost:3000/api/getProveedor/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo cargar el proveedor");
         return res.json();

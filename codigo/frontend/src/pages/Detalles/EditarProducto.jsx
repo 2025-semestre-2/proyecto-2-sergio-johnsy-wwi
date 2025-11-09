@@ -15,10 +15,16 @@ export default function EditarProducto() {
   const [unidadesEmpaquetamiento, setUnidadesEmpaquetamiento] = useState([]);
   const [gruposProducto, setGruposProducto] = useState([]);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    fetch(`http://localhost:3000/api/getProductoID/${id}`)
+    fetch(`http://localhost:3000/api/getProductoID/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo cargar la información del producto");
         return res.json();

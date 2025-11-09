@@ -30,26 +30,44 @@ export default function CrearProducto() {
   const [unidadesEmpaquetamiento, setUnidadesEmpaquetamiento] = useState([]);
   const [gruposProducto, setGruposProducto] = useState([]);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     // Cargar listas
-    fetch(`http://localhost:3000/api/getTodosProveedores`)
+    fetch(`http://localhost:3000/api/getTodosProveedores`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      })
       .then(res => res.json())
       .then(setProveedores)
       .catch(err => setError(err.message));
 
-    fetch(`http://localhost:3000/api/getTodosColores`)
+    fetch(`http://localhost:3000/api/getTodosColores`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then(res => res.json())
       .then(setColores)
       .catch(err => setError(err.message));
 
-    fetch(`http://localhost:3000/api/getTodasUnidadesEmpaquetamiento`)
+    fetch(`http://localhost:3000/api/getTodasUnidadesEmpaquetamiento`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then(res => res.json())
       .then(setUnidadesEmpaquetamiento)
       .catch(err => setError(err.message));
 
-    fetch(`http://localhost:3000/api/getTodosGruposProducto`)
+    fetch(`http://localhost:3000/api/getTodosGruposProducto`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then(res => res.json())
       .then(setGruposProducto)
       .catch(err => setError(err.message));
@@ -74,7 +92,10 @@ export default function CrearProducto() {
 
     fetch(`http://localhost:3000/api/insertarProducto`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
       body: JSON.stringify(producto),
     })
       .then(res => {

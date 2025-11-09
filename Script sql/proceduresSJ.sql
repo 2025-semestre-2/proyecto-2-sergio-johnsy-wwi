@@ -1,4 +1,4 @@
-use Corporativo;
+use Sucursal_SJ;
 GO
 
 CREATE PROCEDURE getClientePorID
@@ -34,7 +34,7 @@ BEGIN
         customer.DeliveryLocation.Lat AS Latitud,
         customer.DeliveryLocation.Long AS Longitud
 
-    FROM Sales.Customers AS customer
+    FROM Corporativo.Sales.Customers AS customer
 		INNER JOIN Sucursal_SJ.Sales.Customers AS sucCustomer
 			ON customer.CustomerID = sucCustomer.CustomerID
         INNER JOIN Sales.CustomerCategories AS category
@@ -49,7 +49,7 @@ BEGIN
             ON city.StateProvinceID = provinces.StateProvinceID
         LEFT JOIN Application.Countries AS countries
             ON provinces.CountryID = countries.CountryID
-        LEFT JOIN Sales.Customers AS customerBillTo
+        LEFT JOIN Corporativo.Sales.Customers AS customerBillTo
             ON customer.BillToCustomerID = customerBillTo.CustomerID
         LEFT JOIN Application.People AS p1
             ON customer.PrimaryContactPersonID = p1.PersonID
@@ -73,7 +73,7 @@ BEGIN
         cc.CustomerCategoryName AS Categoría,
         dm.DeliveryMethodName AS MetodoEntrega
         
-    FROM Sales.Customers AS customer
+    FROM Corporativo.Sales.Customers AS customer
 		INNER JOIN Sucursal_SJ.Sales.Customers AS sucCustomer
 			ON customer.CustomerID = sucCustomer.CustomerID
         INNER JOIN Sales.CustomerCategories AS cc
@@ -340,7 +340,7 @@ SELECT
     SUM(lineas.ExtendedPrice) AS MontoTotal
 FROM Sales.Invoices venta
 INNER JOIN Sales.InvoiceLines lineas ON venta.InvoiceID = lineas.InvoiceID
-LEFT JOIN Sales.Customers customer ON venta.CustomerID = customer.CustomerID
+LEFT JOIN Corporativo.Sales.Customers customer ON venta.CustomerID = customer.CustomerID
 LEFT JOIN Application.DeliveryMethods dm ON venta.DeliveryMethodID = dm.DeliveryMethodID
 GROUP BY 
     venta.InvoiceID, 
@@ -406,7 +406,7 @@ BEGIN
         SUM(lineas.ExtendedPrice) AS MontoTotal
 
     FROM Sales.Invoices venta
-    LEFT JOIN Sales.Customers customer
+    LEFT JOIN Corporativo.Sales.Customers customer
         ON venta.CustomerID = customer.CustomerID
     LEFT JOIN Application.DeliveryMethods dm
         ON venta.DeliveryMethodID = dm.DeliveryMethodID
@@ -544,7 +544,7 @@ SELECT
 FROM Sales.Invoices AS venta
 LEFT JOIN Sales.InvoiceLines AS lineas
     ON venta.InvoiceID = lineas.InvoiceID
-LEFT JOIN Sales.Customers AS cliente
+LEFT JOIN Corporativo.Sales.Customers AS cliente
     ON venta.CustomerID = cliente.CustomerID
 LEFT JOIN Sucursal_SJ.Sales.Customers AS cliente2
     ON venta.CustomerID = cliente.CustomerID
@@ -655,7 +655,7 @@ SELECT
 FROM Sales.Invoices AS venta
 INNER JOIN Sales.InvoiceLines AS lineas
     ON venta.InvoiceID = lineas.InvoiceID
-INNER JOIN Sales.Customers AS cliente
+INNER JOIN Corporativo.Sales.Customers AS cliente
     ON venta.CustomerID = cliente.CustomerID
 GROUP BY 
     YEAR(venta.InvoiceDate),

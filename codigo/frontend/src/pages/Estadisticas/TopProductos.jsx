@@ -7,11 +7,17 @@ export default function TopProductos() {
   const [loading, setLoading] = useState(false);
   const [anio, setAnio] = useState(null);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     setLoading(true);
     let url = "http://localhost:3000/api/getRankingProductos";
     if (anio) url += `?FiltrarAnio=${anio}`;
-    fetch(url)
+    fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then(res => res.json())
       .then(data => {
         setDatos(data);

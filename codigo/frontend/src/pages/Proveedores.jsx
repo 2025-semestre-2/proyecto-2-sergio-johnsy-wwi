@@ -18,11 +18,17 @@ export default function Proveedores() {
   const [filtroMetodo, setFiltroMetodo] = useState(0);
   const [paginaInput, setNumPaginaInput] = useState(pagina);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
 
     setLoading(true);
     //Categorías
-    fetch("http://localhost:3000/api/getCategoriasDeProveedores")
+    fetch("http://localhost:3000/api/getCategoriasDeProveedores", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => res.json())
       .then((data) => {
         setCategoriasProveedores(data);
@@ -32,7 +38,11 @@ export default function Proveedores() {
       });
 
     //Métodos de entrega
-    fetch("http://localhost:3000/api/getMetodosDeEntrega")
+    fetch("http://localhost:3000/api/getMetodosDeEntrega", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => res.json())
       .then((data) => {
         setMetodosEntrega(data);
@@ -51,7 +61,11 @@ export default function Proveedores() {
     if (filtroCategoria) params.append("FiltrarCategoria", filtroCategoria);
     if (filtroMetodo) params.append("FiltrarMetodoEntrega", filtroMetodo);
 
-    fetch(`http://localhost:3000/api/getProveedoresSimple?${params.toString()}`)
+    fetch(`http://localhost:3000/api/getProveedoresSimple?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((res) => res.json())
       .then((data) => {
         setProveedores(data);

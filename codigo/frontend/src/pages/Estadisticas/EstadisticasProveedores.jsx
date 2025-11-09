@@ -7,9 +7,15 @@ export default function EstadisticasProveedores() {
   const [loading, setLoading] = useState(false);
   const [filtroTexto, setFiltroTexto] = useState("");
 
+  const token = localStorage.getItem("token");
+
   const fetchDatos = (filtro = "") => {
     setLoading(true);
-    fetch(`http://localhost:3000/api/getEstadisticasDeProveedores?FiltrarTexto=${encodeURIComponent(filtro)}`)
+    fetch(`http://localhost:3000/api/getEstadisticasDeProveedores?FiltrarTexto=${encodeURIComponent(filtro)}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then(res => res.json())
       .then(data => {
         setDatos(data);

@@ -11,10 +11,16 @@ export default function EstadisticasClientes() {
   const [filtroTexto, setFiltroTexto] = useState("");
   const porPagina = 25;
 
+  const token = localStorage.getItem("token");
+
   // Función para obtener datos de la API con filtro
   const fetchDatos = (filtro = "") => {
     setLoading(true);
-    fetch(`http://localhost:3000/api/getEstadisticasDeClientes?filtro=${encodeURIComponent(filtro)}`)
+    fetch(`http://localhost:3000/api/getEstadisticasDeClientes?filtro=${encodeURIComponent(filtro)}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then(res => res.json())
       .then(data => {
         setDatos(data);
