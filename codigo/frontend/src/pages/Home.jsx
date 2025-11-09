@@ -1,9 +1,27 @@
 import { useNavigate } from "react-router-dom";
 import { FaUsers, FaTruck, FaBoxes, FaChartLine, FaFileAlt } from "react-icons/fa";
+import Estadisticas from "./Estadisticas";
 import "../css/Home.css";
 
 export default function Home() {
   const navigate = useNavigate();
+
+  const sesion = localStorage.getItem("sesion");
+  let userData = { nombre: "Invitado", sede: "Sin sede" };
+
+  if (sesion) {
+    const datos = JSON.parse(sesion);
+    const nombre = datos.usuario || "Invitado";
+    let sede = datos.sede || "Sin sede";
+    if (sede === "CORP") sede = "Corporativa";
+    else if (sede === "SJ") sede = "San José";
+    else if (sede === "LI") sede = "Limón";
+    userData = { nombre, sede };
+  }
+
+  if (userData.sede === "Corporativa") {
+    return <Estadisticas />;
+  }
 
   const sections = [
     { title: "Clientes", desc: "Gestiona tus clientes, agrega, edita o elimina información importante.", link: "/clientes", icon: <FaUsers /> },
@@ -16,7 +34,6 @@ export default function Home() {
   return (
     <div className="home-page">
       <h1 className="bienvenida">Bienvenido a la Gestión de Wide World Importers</h1>
-
       <div className="sections-container">
         {sections.map((s, idx) => (
           <div

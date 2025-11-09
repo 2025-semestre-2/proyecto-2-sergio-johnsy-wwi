@@ -63,14 +63,22 @@ function Navbar() {
         </a>
 
         <div className="info-links">
-          <div className={`links ${menuOpen ? "show" : ""}`}>
-            <Link to="/" className="link" onClick={handleCloseMenu}>Inicio</Link>
-            <Link to="/clientes" className="link" onClick={handleCloseMenu}>Clientes</Link>
-            <Link to="/proveedores" className="link" onClick={handleCloseMenu}>Proveedores</Link>
-            <Link to="/inventarios" className="link" onClick={handleCloseMenu}>Inventarios</Link>
-            <Link to="/ventas" className="link" onClick={handleCloseMenu}>Ventas</Link>
-            <Link to="/estadisticas" className="link" onClick={handleCloseMenu}>Estadísticas</Link>
-          </div>
+          {userData.sede != "Corporativa" && (
+            <div className={`links ${menuOpen ? "show" : ""}`}>
+              <Link to="/" className="link" onClick={handleCloseMenu}>Inicio</Link>
+              <Link to="/clientes" className="link" onClick={handleCloseMenu}>Clientes</Link>
+              <Link to="/proveedores" className="link" onClick={handleCloseMenu}>Proveedores</Link>
+              <Link to="/inventarios" className="link" onClick={handleCloseMenu}>Inventarios</Link>
+              <Link to="/ventas" className="link" onClick={handleCloseMenu}>Ventas</Link>
+              <Link to="/estadisticas" className="link" onClick={handleCloseMenu}>Estadísticas</Link>
+            </div>
+          )}
+
+          {userData.sede === "Corporativa" && (
+            <div className={`links ${menuOpen ? "show" : ""}`}>
+              <p>Corporativa</p>
+            </div>
+          )}
 
           <div className="user-info" onClick={toggleUserMenu}>
             <FaUserCircle className="user-icon" />

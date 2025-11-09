@@ -31,6 +31,14 @@ function App() {
     if (!sesion && location.pathname !== "/login") {
       navigate("/login");
     }
+    let sede = "Sin sede";
+    if (sesion) {
+      const datos = JSON.parse(sesion);
+      sede = datos.sede || "Sin sede";
+    }
+    if (sede === "CORP" && (location.pathname != "/login" && location.pathname != "/")) {
+      navigate("/");
+    }
   }, [location, navigate]);
 
   return (
