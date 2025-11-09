@@ -915,3 +915,33 @@ GO
 --    SELECT SCOPE_IDENTITY() AS StockItemID;
 --END;
 --GO
+
+
+CREATE PROCEDURE sp_login
+  @Usuario NVARCHAR(50),
+  @Contrasena NVARCHAR(100)
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  DECLARE @HashGuardado VARBINARY(64);
+
+  SELECT @HashGuardado = HashedPassword
+  FROM Application.Users
+  WHERE Username = @Usuario AND Active = 1;
+
+  IF @HashGuardado IS NULL
+  BEGIN
+    SELECT 'Usuario no encontrado o inactivo.' AS Mensaje, 0 AS Exito;
+    RETURN;
+  END;
+
+  IF @HashGuardado = HASHBYTES('SHA2_256', @Contrasena)
+  BEGIN
+    SELECT 'Inicio de sesión exitoso.' AS Mensaje, 1 AS Exito;
+  END
+  ELSE
+  BEGIN
+    SELECT 'Contraseña incorrecta.' AS Mensaje, 0 AS Exito;
+  END;
+END;
