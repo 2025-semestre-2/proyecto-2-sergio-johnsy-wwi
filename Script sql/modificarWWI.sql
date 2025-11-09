@@ -26,6 +26,7 @@ CREATE TABLE #TempCities (
 	Latitude FLOAT,
     Longitude FLOAT
 );
+GO
 
 BULK INSERT #TempCities
 FROM '/var/opt/mssql/data/Poblados_de_Costa_Rica.csv'
@@ -34,7 +35,7 @@ WITH (
     FIELDTERMINATOR = ',',
     ROWTERMINATOR = '\n'
 );
-
+GO
 
 SELECT * FROM #TempCities
 

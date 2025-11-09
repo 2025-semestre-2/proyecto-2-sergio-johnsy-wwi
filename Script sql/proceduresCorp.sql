@@ -23,8 +23,8 @@ BEGIN
         customer.DeliveryPostalCode AS CodigoPostal,
         customer.PhoneNumber AS Telefono,
         customer.FaxNumber AS Fax,
-        customer.PaymentDays AS DiasParaPagar,
-        customer.WebsiteURL AS SitioWeb,
+        sucCustomer.PaymentDays AS DiasParaPagar,
+        sucCustomer.WebsiteURL AS SitioWeb,
 
         CONCAT(customer.DeliveryAddressLine1, ', ', ISNULL(customer.DeliveryAddressLine2, '')) AS DireccionEntrega,
         CONCAT(customer.PostalAddressLine1, ', ', ISNULL(customer.PostalAddressLine2, '')) AS DireccionPostal,
@@ -32,12 +32,14 @@ BEGIN
         customer.DeliveryLocation.Long AS Longitud
 
     FROM Sales.Customers AS customer
+		INNER JOIN Sucursal_SJ.Sales.Customers AS sucCustomer
+			ON customer.CustomerID = sucCustomer.CustomerID
         INNER JOIN Sales.CustomerCategories AS category
-            ON customer.CustomerCategoryID = category.CustomerCategoryID
+            ON sucCustomer.CustomerCategoryID = category.CustomerCategoryID
         LEFT JOIN Sales.BuyingGroups AS buyingGroup
-            ON customer.BuyingGroupID = buyingGroup.BuyingGroupID
+            ON sucCustomer.BuyingGroupID = buyingGroup.BuyingGroupID
         LEFT JOIN Application.DeliveryMethods AS deliveryMethod
-            ON customer.DeliveryMethodID = deliveryMethod.DeliveryMethodID
+            ON sucCustomer.DeliveryMethodID = deliveryMethod.DeliveryMethodID
         LEFT JOIN Application.Cities AS city
             ON customer.DeliveryCityID = city.CityID
         LEFT JOIN Application.StateProvinces AS provinces
@@ -69,10 +71,12 @@ BEGIN
         dm.DeliveryMethodName AS MetodoEntrega
         
     FROM Sales.Customers AS customer
+		INNER JOIN Sucursal_SJ.Sales.Customers AS sucCustomer
+			ON customer.CustomerID = sucCustomer.CustomerID
         INNER JOIN Sales.CustomerCategories AS cc
-            ON customer.CustomerCategoryID = cc.CustomerCategoryID
+            ON sucCustomer.CustomerCategoryID = cc.CustomerCategoryID
         LEFT JOIN Application.DeliveryMethods AS dm
-            ON customer.DeliveryMethodID = dm.DeliveryMethodID
+            ON sucCustomer.DeliveryMethodID = dm.DeliveryMethodID
     WHERE
         ((@FiltrarNombre IS NULL OR customer.CustomerName LIKE '%' + @FiltrarNombre + '%')
         OR (@FiltrarNombre IS NULL OR cc.CustomerCategoryName LIKE '%' + @FiltrarNombre + '%'))
@@ -92,6 +96,7 @@ BEGIN
         DeliveryMethodName AS NombreMetodo
     FROM Application.DeliveryMethods;
 END;
+GO
 
 CREATE PROCEDURE getCategoriasClientes
 AS
@@ -538,8 +543,10 @@ LEFT JOIN Sales.InvoiceLines AS lineas
     ON venta.InvoiceID = lineas.InvoiceID
 LEFT JOIN Sales.Customers AS cliente
     ON venta.CustomerID = cliente.CustomerID
+LEFT JOIN Sucursal_SJ.Sales.Customers AS cliente2
+    ON venta.CustomerID = cliente.CustomerID
 LEFT JOIN Sales.CustomerCategories AS categorias
-    ON cliente.CustomerCategoryID = categorias.CustomerCategoryID
+    ON cliente2.CustomerCategoryID = categorias.CustomerCategoryID
 GROUP BY
     venta.InvoiceID,
     cliente.CustomerID,

@@ -400,7 +400,7 @@ GO
 
 
 CREATE TABLE Warehouse.StockItemTransactions (
-    StockItemTransactionID INT NOT NULL PRIMARY KEY,
+    StockItemTransactionID INT NOT NULL IDENTITY PRIMARY KEY,
     StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
     TransactionTypeID INT NOT NULL FOREIGN KEY REFERENCES Application.TransactionTypes(TransactionTypeID),
     CustomerID INT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
@@ -416,7 +416,7 @@ GO
 
 
 
-CREATE TABLE Users(
+CREATE TABLE Application.Users(
 	IDUser int IDENTITY PRIMARY KEY NOT NULL,
     Username NVARCHAR(50) NOT NULL ,
     HashedPassword VARBINARY(64) NULL,   
@@ -820,7 +820,7 @@ GO
 
 
 CREATE TABLE Warehouse.StockItemTransactions (
-    StockItemTransactionID INT NOT NULL PRIMARY KEY,
+    StockItemTransactionID INT NOT NULL IDENTITY PRIMARY KEY,
     StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
     TransactionTypeID INT NOT NULL FOREIGN KEY REFERENCES Application.TransactionTypes(TransactionTypeID),
     CustomerID INT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
@@ -835,8 +835,7 @@ CREATE TABLE Warehouse.StockItemTransactions (
 GO
 
 
-
-CREATE TABLE Users(
+CREATE TABLE Application.Users(
 	IDUser int IDENTITY PRIMARY KEY NOT NULL,
     Username NVARCHAR(50) NOT NULL ,
     HashedPassword VARBINARY(64) NULL,   
@@ -1240,7 +1239,7 @@ CREATE TABLE Sales.InvoiceLines (
 GO
 
 CREATE TABLE Warehouse.StockItemTransactions (
-    StockItemTransactionID INT NOT NULL PRIMARY KEY,
+    StockItemTransactionID INT NOT NULL IDENTITY PRIMARY KEY,
     StockItemID INT NOT NULL FOREIGN KEY REFERENCES Warehouse.StockItems(StockItemID),
     TransactionTypeID INT NOT NULL FOREIGN KEY REFERENCES Application.TransactionTypes(TransactionTypeID),
     CustomerID INT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
