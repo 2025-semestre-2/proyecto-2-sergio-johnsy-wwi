@@ -948,6 +948,7 @@ ALTER PROCEDURE crearStockItem
     @MarketingComments NVARCHAR(MAX) = NULL,
     @InternalComments NVARCHAR(MAX) = NULL,
     @Photo VARBINARY(MAX) = NULL,
+    @GruposID VARCHAR(100) = NULL,
     @LastEditedBy INT = NULL
 AS
 BEGIN
@@ -1002,7 +1003,27 @@ BEGIN
         DEFAULT  -- ValidTo
     );
 
-    SELECT SCOPE_IDENTITY() AS StockItemID;
+    DECLARE @NewStockItemID INT;
+    SET @NewStockItemID = SCOPE_IDENTITY();
+
+    IF @GruposID IS NOT NULL
+    BEGIN
+        INSERT INTO Sucursal_SJ.Warehouse.StockItemStockGroups (
+            StockItemID,
+            StockGroupID,
+            LastEditedBy,
+            LastEditedWhen
+        )
+        SELECT 
+            @NewStockItemID,
+            TRY_CAST(value AS INT),
+            @LastEditedBy,
+            GETDATE()
+        FROM STRING_SPLIT(@GruposID, ',')
+        WHERE TRY_CAST(value AS INT) IS NOT NULL;
+    END;
+
+    SELECT @NewStockItemID AS StockItemID;
 END;
 GO
 

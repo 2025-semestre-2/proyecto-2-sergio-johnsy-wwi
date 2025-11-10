@@ -109,7 +109,8 @@ export default function CrearProducto() {
     setProducto(prev => ({ ...prev, [name]: selected }));
   };
 
-  const handleGuardar = () => {
+  const handleGuardar = (e) => {
+    e.preventDefault();
     console.log("Creando producto:", producto);
     setGuardando(true);
 
@@ -144,115 +145,121 @@ export default function CrearProducto() {
 
       {error && <p style={{ color: "red" }}>Error: {error}</p>}
 
-      <div className="cliente-detalle-grid">
-        <div className="cliente-derecha">
-          <div className="seccion">
-            <h3>Información General</h3>
-            <p>
-              <strong>Nombre:</strong>
-              <input className="inputEditarProducto" type="text" name="NombreProducto" value={producto.NombreProducto} onChange={handleChange} />
-            </p>
-            <p>
-              <strong>Marca:</strong>
-              <input className="inputEditarProducto" type="text" name="Marca" value={producto.Marca} onChange={handleChange} />
-            </p>
-            <p>
-              <strong>Tamaño:</strong>
-              <input className="inputEditarProducto" type="text" name="Tamano" value={producto.Tamano} onChange={handleChange} />
-            </p>
-            <p>
-              <strong>Color:</strong>
-              <select className="inputEditarProducto" name="ColorID" value={producto.ColorID} onChange={handleChange}>
-                <option value="">- Seleccione color -</option>
-                {colores.map(c => (
-                  <option key={c.ID} value={c.ID}>{c.Nombre}</option>
-                ))}
-              </select>
-            </p>
-            
-              <strong>Grupos:</strong>
-              <GruposCheckbox
-                gruposProducto={gruposProducto}
-                producto={producto}
-                setProducto={setProducto}
-              />
+      <form onSubmit={handleGuardar}>
+        <div className="cliente-detalle-grid">
+          <div className="cliente-derecha">
+            <div className="seccion">
+              <h3>Información General</h3>
+              <p>
+                <strong>Nombre:</strong>
+                <input className="inputEditarProducto" type="text" required name="NombreProducto" value={producto.NombreProducto} onChange={handleChange} />
+              </p>
+              <p>
+                <strong>Marca:</strong>
+                <input className="inputEditarProducto" type="text" required name="Marca" value={producto.Marca} onChange={handleChange} />
+              </p>
+              <p>
+                <strong>Tamaño:</strong>
+                <input className="inputEditarProducto" type="text" required name="Tamano" value={producto.Tamano} onChange={handleChange} />
+              </p>
+              <p>
+                <strong>Peso por unidad:</strong>
+                <input className="inputEditarProducto" type="text" required name="PesoUnitario" value={producto.PesoUnitario} onChange={handleChange} />
+              </p>
+              <p>
+                <strong>Color:</strong>
+                <select className="inputEditarProducto" name="ColorID" value={producto.ColorID} onChange={handleChange}>
+                  <option value="">- Seleccione color -</option>
+                  {colores.map(c => (
+                    <option key={c.ID} value={c.ID}>{c.Nombre}</option>
+                  ))}
+                </select>
+              </p>
+              
+                <strong>Grupos:</strong>
+                <GruposCheckbox
+                  gruposProducto={gruposProducto}
+                  producto={producto}
+                  setProducto={setProducto}
+                />
 
-            
+              
+            </div>
+
+            <div className="seccion">
+              <h3>Precios e Impuestos</h3>
+              <p>
+                <strong>Precio unitario:</strong>
+                <input className="inputEditarProducto" type="number" step="0.01" name="PrecioUnitario" value={producto.PrecioUnitario} onChange={handleChange} />
+              </p>
+              <p>
+                <strong>Precio venta recomendado:</strong>
+                <input className="inputEditarProducto" type="number" step="0.01" name="PrecioVentaRecomendado" value={producto.PrecioVentaRecomendado} onChange={handleChange} />
+              </p>
+              <p>
+                <strong>Tasa de impuesto (%):</strong>
+                <input className="inputEditarProducto" type="number" step="0.01" name="TasaImpuesto" value={producto.TasaImpuesto} onChange={handleChange} />
+              </p>
+            </div>
           </div>
 
-          <div className="seccion">
-            <h3>Precios e Impuestos</h3>
-            <p>
-              <strong>Precio unitario:</strong>
-              <input className="inputEditarProducto" type="number" step="0.01" name="PrecioUnitario" value={producto.PrecioUnitario} onChange={handleChange} />
-            </p>
-            <p>
-              <strong>Precio venta recomendado:</strong>
-              <input className="inputEditarProducto" type="number" step="0.01" name="PrecioVentaRecomendado" value={producto.PrecioVentaRecomendado} onChange={handleChange} />
-            </p>
-            <p>
-              <strong>Tasa de impuesto (%):</strong>
-              <input className="inputEditarProducto" type="number" step="0.01" name="TasaImpuesto" value={producto.TasaImpuesto} onChange={handleChange} />
-            </p>
+          <div className="cliente-derecha">
+            <div className="seccion">
+              <h3>Inventario (Sucursal {userData.sede})</h3>
+              <p>
+                <strong>Cantidad disponible:</strong>
+                <input className="inputEditarProducto" type="number" name="CantidadDisponible" value={producto.CantidadDisponible} onChange={handleChange} />
+              </p>
+              <p>
+                <strong>Cantidad por empaque:</strong>
+                <input className="inputEditarProducto" type="number" name="CantidadPorEmpaquetamiento" value={producto.CantidadPorEmpaquetamiento} onChange={handleChange} />
+              </p>
+              <p>
+                <strong>Unidad de empaquetamiento:</strong>
+                <select className="inputEditarProducto" name="UnidadEmpaquetamientoID" value={producto.UnidadEmpaquetamientoID} onChange={handleChange}>
+                  <option value="">- Seleccione unidad -</option>
+                  {unidadesEmpaquetamiento.map(u => (
+                    <option key={u.ID} value={u.ID}>{u.Nombre}</option>
+                  ))}
+                </select>
+              </p>
+              <p>
+                <strong>Empaque externo:</strong>
+                <select className="inputEditarProducto" name="EmpaquetamientoID" value={producto.EmpaquetamientoID} onChange={handleChange}>
+                  <option value="">- Seleccione empaque -</option>
+                  {unidadesEmpaquetamiento.map(u => (
+                    <option key={u.ID} value={u.ID}>{u.Nombre}</option>
+                  ))}
+                </select>
+              </p>
+              <p>
+                <strong>Ubicación en bodega:</strong>
+                <input className="inputEditarProducto" type="text" required name="BinLocation" value={producto.BinLocation} onChange={handleChange} />
+              </p>
+            </div>
+
+            <div className="seccion">
+              <h3>Proveedor</h3>
+              <p>
+                <strong>Proveedor:</strong>
+                <select className="inputEditarProducto" name="IDProveedor" value={producto.IDProveedor} onChange={handleChange}>
+                  <option value="">- Seleccione proveedor -</option>
+                  {proveedores.map(p => (
+                    <option key={p.ID} value={p.ID}>{p.Nombre}</option>
+                  ))}
+                </select>
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="cliente-derecha">
-          <div className="seccion">
-            <h3>Inventario (Sucursal {userData.sede})</h3>
-            <p>
-              <strong>Cantidad disponible:</strong>
-              <input className="inputEditarProducto" type="number" name="CantidadDisponible" value={producto.CantidadDisponible} onChange={handleChange} />
-            </p>
-            <p>
-              <strong>Cantidad por empaque:</strong>
-              <input className="inputEditarProducto" type="number" name="CantidadPorEmpaquetamiento" value={producto.CantidadPorEmpaquetamiento} onChange={handleChange} />
-            </p>
-            <p>
-              <strong>Unidad de empaquetamiento:</strong>
-              <select className="inputEditarProducto" name="UnidadEmpaquetamientoID" value={producto.UnidadEmpaquetamientoID} onChange={handleChange}>
-                <option value="">- Seleccione unidad -</option>
-                {unidadesEmpaquetamiento.map(u => (
-                  <option key={u.ID} value={u.ID}>{u.Nombre}</option>
-                ))}
-              </select>
-            </p>
-            <p>
-              <strong>Empaque externo:</strong>
-              <select className="inputEditarProducto" name="EmpaquetamientoID" value={producto.EmpaquetamientoID} onChange={handleChange}>
-                <option value="">- Seleccione empaque -</option>
-                {unidadesEmpaquetamiento.map(u => (
-                  <option key={u.ID} value={u.ID}>{u.Nombre}</option>
-                ))}
-              </select>
-            </p>
-            <p>
-              <strong>Ubicación en bodega:</strong>
-              <input className="inputEditarProducto" type="text" name="BinLocation" value={producto.BinLocation} onChange={handleChange} />
-            </p>
-          </div>
-
-          <div className="seccion">
-            <h3>Proveedor</h3>
-            <p>
-              <strong>Proveedor:</strong>
-              <select className="inputEditarProducto" name="IDProveedor" value={producto.IDProveedor} onChange={handleChange}>
-                <option value="">- Seleccione proveedor -</option>
-                {proveedores.map(p => (
-                  <option key={p.ID} value={p.ID}>{p.Nombre}</option>
-                ))}
-              </select>
-            </p>
-          </div>
+        <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "25px" }}>
+          <button type="submit" className="btn-editar" disabled={guardando}>
+            Crear Producto
+          </button>
+          <button className="btn-borrar" onClick={() => navigate(-1)}>Cancelar</button>
         </div>
-      </div>
-
-      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "25px" }}>
-        <button className="btn-editar" onClick={handleGuardar} disabled={guardando}>
-          Crear Producto
-        </button>
-        <button className="btn-borrar" onClick={() => navigate(-1)}>Cancelar</button>
-      </div>
+      </form>
     </div>
   );
 }

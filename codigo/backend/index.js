@@ -320,6 +320,7 @@ app.post('/api/insertarProducto', verificarToken, async (req, res) => {
     PrecioUnitario,
     PrecioVentaRecomendado,
     TasaImpuesto,
+    PesoUnitario,
     CantidadDisponible,
     GruposProductoIDs,
     CodigoBarras,
@@ -340,9 +341,10 @@ app.post('/api/insertarProducto', verificarToken, async (req, res) => {
     return res.status(400).json({ error: 'Faltan campos obligatorios o están vacíos' });
   }
 
-  const gruposProductoStr = Array.isArray(GruposProductoIDs)
-    ? JSON.stringify({ grupos: GruposProductoIDs })
-    : null;
+  let gruposProductoStr = null
+  if (GruposProductoIDs != [] && GruposProductoIDs != null) {
+    gruposProductoStr = GruposProductoIDs.join(",")
+  }
 
   const parametros = [
     ["StockItemName", TYPES.NVarChar, NombreProducto],
@@ -355,13 +357,14 @@ app.post('/api/insertarProducto', verificarToken, async (req, res) => {
     ["UnitPrice", TYPES.Money, PrecioUnitario],
     ["RecommendedRetailPrice", TYPES.Money, PrecioVentaRecomendado || 0],
     ["TaxRate", TYPES.Float, TasaImpuesto || 0],
-    ["TypicalWeightPerUnit", TYPES.Float, 0],
-    ["CustomFields", TYPES.NVarChar, gruposProductoStr],
+    ["TypicalWeightPerUnit", TYPES.Float, PesoUnitario || 0],
+    ["CustomFields", TYPES.NVarChar, "{}"],
     ["QuantityPerOuter", TYPES.Int, CantidadPorEmpaquetamiento || null],
     ["Barcode", TYPES.NVarChar, CodigoBarras || null],
     ["MarketingComments", TYPES.NVarChar, ComentariosMarketing || null],
     ["InternalComments", TYPES.NVarChar, ComentariosInternos || null],
     ["Photo", TYPES.VarBinary, Foto || null],
+    ["GruposID", TYPES.NVarChar, gruposProductoStr],
     ["LastEditedBy", TYPES.Int, 1 || null]
   ];
 
