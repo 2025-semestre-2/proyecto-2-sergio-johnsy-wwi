@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import GruposCheckbox from "../../components/GruposCheckbox.jsx";
 import "../../css/DetalleCliente.css";
 
 export default function CrearProducto() {
@@ -10,7 +11,6 @@ export default function CrearProducto() {
     Tamano: "",
     ColorID: "",
     GruposProductoIDs: [],
-    PalabrasClave: "",
     PrecioUnitario: 0,
     PrecioVentaRecomendado: 0,
     TasaImpuesto: 0,
@@ -19,8 +19,16 @@ export default function CrearProducto() {
     CantidadPorEmpaquetamiento: 0,
     UnidadEmpaquetamientoID: "",
     EmpaquetamientoID: "",
-    UbicacionBodega: "",
+    BinLocation: "",
     IDProveedor: "",
+    CodigoBarras: "",
+    ComentariosMarketing: "",
+    ComentariosInternos: "",
+    Foto: null,
+    LastStocktakeQuantity: 0,
+    LastCostPrice: 0,
+    ReorderLevel: 0,
+    TargetStockLevel: 0
   });
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState(null);
@@ -30,7 +38,22 @@ export default function CrearProducto() {
   const [unidadesEmpaquetamiento, setUnidadesEmpaquetamiento] = useState([]);
   const [gruposProducto, setGruposProducto] = useState([]);
 
+
+
   const token = localStorage.getItem("token");
+
+  const sesion = localStorage.getItem("sesion");
+  let userData = { nombre: "Invitado", sede: "Sin sede" };
+
+  if (sesion) {
+    const datos = JSON.parse(sesion);
+    const nombre = datos.usuario || "Invitado";
+    let sede = datos.sede || "Sin sede";
+    if (sede === "CORP") sede = "Corporativa";
+    else if (sede === "SJ") sede = "San José";
+    else if (sede === "LI") sede = "Limón";
+    userData = { nombre, sede };
+  }
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -146,14 +169,15 @@ export default function CrearProducto() {
                 ))}
               </select>
             </p>
-            <p>
+            
               <strong>Grupos:</strong>
-              <select className="inputEditarProducto" name="GruposProductoIDs" multiple value={producto.GruposProductoIDs} onChange={handleChangeMultiple} size={5}>
-                {gruposProducto.map(g => (
-                  <option key={g.ID} value={g.ID}>{g.Nombre}</option>
-                ))}
-              </select>
-            </p>
+              <GruposCheckbox
+                gruposProducto={gruposProducto}
+                producto={producto}
+                setProducto={setProducto}
+              />
+
+            
           </div>
 
           <div className="seccion">
@@ -175,7 +199,7 @@ export default function CrearProducto() {
 
         <div className="cliente-derecha">
           <div className="seccion">
-            <h3>Inventario</h3>
+            <h3>Inventario (Sucursal {userData.sede})</h3>
             <p>
               <strong>Cantidad disponible:</strong>
               <input className="inputEditarProducto" type="number" name="CantidadDisponible" value={producto.CantidadDisponible} onChange={handleChange} />
@@ -204,7 +228,7 @@ export default function CrearProducto() {
             </p>
             <p>
               <strong>Ubicación en bodega:</strong>
-              <input className="inputEditarProducto" type="text" name="UbicacionBodega" value={producto.UbicacionBodega} onChange={handleChange} />
+              <input className="inputEditarProducto" type="text" name="BinLocation" value={producto.BinLocation} onChange={handleChange} />
             </p>
           </div>
 

@@ -307,7 +307,7 @@ app.delete('/api/eliminarProducto/:id', verificarToken, (req, res) => {
 });
 
 
-app.post('/api/insertarProducto', verificarToken, (req, res) => {
+app.post('/api/insertarProducto', verificarToken, async (req, res) => {
   const {
     NombreProducto,
     IDProveedor,
@@ -321,13 +321,28 @@ app.post('/api/insertarProducto', verificarToken, (req, res) => {
     PrecioVentaRecomendado,
     TasaImpuesto,
     CantidadDisponible,
-    GruposProductoIDs
+    GruposProductoIDs,
+    CodigoBarras,
+    ComentariosMarketing,
+    ComentariosInternos,
+    Foto,
+    // Inventario:
+    StockItemID,  
+    BinLocation, 
+    LastStocktakeQuantity, 
+    LastCostPrice, 
+    ReorderLevel, 
+    TargetStockLevel
   } = req.body;
+
   if ([NombreProducto, PrecioUnitario, TasaImpuesto].includes(undefined) || NombreProducto.trim() === "") {
     console.log("Faltan campos obligatorios o están vacíos");
     return res.status(400).json({ error: 'Faltan campos obligatorios o están vacíos' });
   }
-  const gruposProductoStr = Array.isArray(GruposProductoIDs) ? JSON.stringify({ grupos: GruposProductoIDs }) : null;
+
+  const gruposProductoStr = Array.isArray(GruposProductoIDs)
+    ? JSON.stringify({ grupos: GruposProductoIDs })
+    : null;
 
   const parametros = [
     ["StockItemName", TYPES.NVarChar, NombreProducto],
@@ -340,11 +355,34 @@ app.post('/api/insertarProducto', verificarToken, (req, res) => {
     ["UnitPrice", TYPES.Money, PrecioUnitario],
     ["RecommendedRetailPrice", TYPES.Money, PrecioVentaRecomendado || 0],
     ["TaxRate", TYPES.Float, TasaImpuesto || 0],
-    ["TypicalWeightPerUnit", TYPES.Float, 0], // si no lo tienes, default 0
-    ["CustomFields", TYPES.NVarChar, gruposProductoStr]
+    ["TypicalWeightPerUnit", TYPES.Float, 0],
+    ["CustomFields", TYPES.NVarChar, gruposProductoStr],
+    ["QuantityPerOuter", TYPES.Int, CantidadPorEmpaquetamiento || null],
+    ["Barcode", TYPES.NVarChar, CodigoBarras || null],
+    ["MarketingComments", TYPES.NVarChar, ComentariosMarketing || null],
+    ["InternalComments", TYPES.NVarChar, ComentariosInternos || null],
+    ["Photo", TYPES.VarBinary, Foto || null],
+    ["LastEditedBy", TYPES.Int, 1 || null]
   ];
 
-  ejecutarSP("crearStockItem", parametros, req, res);
+  const resultado1 = await ejecutarSP("crearStockItem", parametros, req, res, true);
+
+  const parametrosInventario = [
+    ["StockItemID", TYPES.Int, resultado1[0]?.StockItemID || StockItemID],
+    ["QuantityOnHand", TYPES.Int, CantidadDisponible || 0],
+    ["BinLocation", TYPES.NVarChar, BinLocation || null],
+    ["LastStocktakeQuantity", TYPES.Int, LastStocktakeQuantity || 0],
+    ["LastCostPrice", TYPES.Money, LastCostPrice || 0],
+    ["ReorderLevel", TYPES.Int, ReorderLevel || 0],
+    ["TargetStockLevel", TYPES.Int, TargetStockLevel || 0],
+    ["LastEditedBy", TYPES.Int, 1 || null],
+    ["Branch", TYPES.NVarChar, req.body.sede || "SJ"]
+  ];
+  
+  const resultado2 = await ejecutarSP("crearInventarioProducto", parametrosInventario, req, res, true);
+
+  res.json({ Mensaje: "Producto creado correctamente", ProductoID: resultado1[0]?.NewStockItemID, InventarioID: resultado2[0]?.NewInventoryID });
+
 });
 
 

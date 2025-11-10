@@ -38,7 +38,7 @@ export default function Login() {
     });
 
     const data = await res.json();
-    alert(data.mensaje);
+    if (!res.ok) alert(data.mensaje);
 
     if (!(!res.ok && !data.token)) {
       localStorage.setItem("sesion", JSON.stringify({ usuario, sede }));
