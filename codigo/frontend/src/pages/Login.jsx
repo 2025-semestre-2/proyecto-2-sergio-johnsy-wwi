@@ -37,12 +37,14 @@ export default function Login() {
       body: JSON.stringify({ usuario, password: contrasena, sede }),
     });
 
-    if (!res.ok) alert("Credenciales inválidas");
     const data = await res.json();
-    localStorage.setItem("sesion", JSON.stringify({ usuario, sede }));
-    localStorage.setItem("token", data.token);
     alert(data.mensaje);
-    navigate("/");
+
+    if (!(!res.ok && !data.token)) {
+      localStorage.setItem("sesion", JSON.stringify({ usuario, sede }));
+      localStorage.setItem("token", data.token);
+      navigate("/");
+    }
   } catch (err) {
     alert(err.message);
   }

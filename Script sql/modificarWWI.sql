@@ -37,8 +37,6 @@ WITH (
 );
 GO
 
-SELECT * FROM #TempCities
-
 BEGIN TRANSACTION;
 
 ALTER TABLE [Sales].[Customers] NOCHECK CONSTRAINT FK_Sales_Customers_DeliveryCityID_Application_Cities;

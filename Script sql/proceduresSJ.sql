@@ -928,30 +928,41 @@ GO
 
 
 CREATE PROCEDURE sp_login
-  @Usuario NVARCHAR(50),
-  @Contrasena NVARCHAR(100)
+    @Usuario NVARCHAR(50),
+    @Contrasena NVARCHAR(100)
 AS
 BEGIN
-  SET NOCOUNT ON;
+    SET NOCOUNT ON;
 
-  DECLARE @HashGuardado VARBINARY(64);
+    DECLARE @UsuarioID INT;
+    DECLARE @HashIngresado VARBINARY(64) = HASHBYTES('SHA2_256', CONVERT(VARCHAR(100), @Contrasena));
+    DECLARE @HashAlmacenado VARBINARY(64);
+    DECLARE @Activo BIT;
 
-  SELECT @HashGuardado = HashedPassword
-  FROM Application.Users
-  WHERE Username = @Usuario AND Active = 1;
+    SELECT 
+        @UsuarioID = IdUser,
+        @HashAlmacenado = HashedPassword,
+        @Activo = Active
+    FROM Application.Users
+    WHERE Username = @Usuario;
 
-  IF @HashGuardado IS NULL
-  BEGIN
-    SELECT 'Usuario no encontrado o inactivo.' AS Mensaje, 0 AS Exito;
-    RETURN;
-  END;
+    IF @UsuarioID IS NULL
+    BEGIN
+        SELECT 'El usuario no existe.' AS Mensaje, 0 AS Exito;
+        RETURN;
+    END
 
-  IF @HashGuardado = HASHBYTES('SHA2_256', @Contrasena)
-  BEGIN
+    IF @Activo = 0
+    BEGIN
+        SELECT 'El usuario está inactivo.' AS Mensaje, 0 AS Exito;
+        RETURN;
+    END
+
+    IF @HashAlmacenado != @HashIngresado
+    BEGIN
+        SELECT 'Contraseña incorrecta.' AS Mensaje, 0 AS Exito;
+        RETURN;
+    END
+
     SELECT 'Inicio de sesión exitoso.' AS Mensaje, 1 AS Exito;
-  END
-  ELSE
-  BEGIN
-    SELECT 'Contraseña incorrecta.' AS Mensaje, 0 AS Exito;
-  END;
-END;
+END

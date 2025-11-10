@@ -47,7 +47,7 @@ function ejecutarSP(nombreSP, parametros, req, res, devolver = false, sede = nul
     const resultados = [];
     const sedeFinal = sede || (req.user ? req.user.sede : null);
     let connection = new Connection(configCorp);
-    if (sedeFinal) {
+    if (sedeFinal && sedeFinal !== 'CORP') {
       let configSede = { ...configSucursal };
       configSede.options.database = "Sucursal_" + sedeFinal;
       connection = new Connection(configSede);
@@ -125,7 +125,7 @@ app.get('/api/getClientesSimple', verificarToken, (req, res) => {
   ejecutarSP("getClientesSimple", parametros, req, res);
 });
 
-app.get('/api/getCliente/:id', (req, res) => {
+app.get('/api/getCliente/:id', verificarToken, (req, res) => {
   const { id } = req.params;
   ejecutarSP("getClientePorID", [["CustomerID", TYPES.Int, parseInt(id)]], req, res);
 });
@@ -141,7 +141,7 @@ app.get("/api/getMetodosDeEntrega", verificarToken, (req, res) => {
 
 // Proveedores
 
-app.get('/api/getProveedoresSimple', (req, res) => {
+app.get('/api/getProveedoresSimple', verificarToken, (req, res) => {
   const { FiltrarNombre, FiltrarCategoria, FiltrarMetodoEntrega } = req.query;
   const parametros = [];
   if (FiltrarNombre) parametros.push(["FiltrarNombre", TYPES.NVarChar, FiltrarNombre]);
@@ -150,7 +150,7 @@ app.get('/api/getProveedoresSimple', (req, res) => {
   ejecutarSP("getProveedoresSimple", parametros, req, res);
 });
 
-app.get('/api/getProveedor/:id', (req, res) => {
+app.get('/api/getProveedor/:id', verificarToken, (req, res) => {
   const { id } = req.params;
   ejecutarSP("getProveedorPorID", [["SupplierID", TYPES.Int, parseInt(id)]], req, res);
 });
@@ -161,7 +161,7 @@ app.get("/api/getCategoriasDeProveedores", (req, res) => {
 
 
 // Inventarios
-app.get('/api/getProductosInventario', (req, res) => {
+app.get('/api/getProductosInventario', verificarToken, (req, res) => {
   const { FiltrarNombre, FiltrarGrupo, FiltrarCantidadMinima, FiltrarCantidadMaxima } = req.query;
   const parametros = [];
   if (FiltrarNombre) parametros.push(["FiltrarNombre", TYPES.NVarChar, FiltrarNombre]);
@@ -171,11 +171,11 @@ app.get('/api/getProductosInventario', (req, res) => {
   ejecutarSP("getInventarioSimple", parametros, req, res);
 });
 
-app.get("/api/getGruposDeProductos", (req, res) => {
+app.get("/api/getGruposDeProductos", verificarToken, (req, res) => {
   ejecutarSP("getGruposProductos", [], req, res);
 });
 
-app.get('/api/getProductoID/:id', (req, res) => {
+app.get('/api/getProductoID/:id', verificarToken, (req, res) => {
   const { id } = req.params;
   ejecutarSP("getProductoPorID", [["ProductoID", TYPES.Int, parseInt(id)]], req, res);
 });
@@ -183,17 +183,17 @@ app.get('/api/getProductoID/:id', (req, res) => {
 
 // Ventas
 
-app.get('/api/getEncabezadoVentaID/:id', (req, res) => {
+app.get('/api/getEncabezadoVentaID/:id', verificarToken, (req, res) => {
   const { id } = req.params;
   ejecutarSP("getEncabezadoVentaPorID", [["NumeroFactura", TYPES.Int, parseInt(id)]], req, res);
 });
 
-app.get('/api/getDetallesVentaID/:id', (req, res) => {
+app.get('/api/getDetallesVentaID/:id', verificarToken, (req, res) => {
   const { id } = req.params;
   ejecutarSP("getDetallesVentaPorID", [["NumeroFactura", TYPES.Int, parseInt(id)]], req, res);
 });
 
-app.get('/api/getVentas', (req, res) => {
+app.get('/api/getVentas', verificarToken, (req, res) => {
   const { FiltrarCliente, FiltrarFechaDesde, FiltrarFechaHasta, FiltrarMetodoEntrega, FiltrarMontoMinimo, FiltrarMontoMaximo, Pagina, FilasPorPagina } = req.query;
   const parametros = [];
   if (FiltrarCliente) parametros.push(["FiltrarCliente", TYPES.NVarChar, FiltrarCliente]);
@@ -210,56 +210,56 @@ app.get('/api/getVentas', (req, res) => {
 
 // Estadísticas
 
-app.get('/api/getEstadisticasDeProveedores', (req, res) => {
+app.get('/api/getEstadisticasDeProveedores', verificarToken, (req, res) => {
   const { FiltrarTexto } = req.query;
   ejecutarSP("EstadisticasProveedores", [["FiltrarTexto", TYPES.NVarChar, FiltrarTexto || null]], req, res);
 });
 
-app.get('/api/getEstadisticasDeClientes', (req, res) => {
+app.get('/api/getEstadisticasDeClientes', verificarToken, (req, res) => {
   const { FiltrarTexto } = req.query;
   ejecutarSP("EstadisticasClientes", [["FiltrarTexto", TYPES.NVarChar, FiltrarTexto || null]], req, res);
 });
 
-app.get('/api/getRankingProductos', (req, res) => {
+app.get('/api/getRankingProductos', verificarToken, (req, res) => {
   const { FiltrarAnio } = req.query;
   const parametros = [];
   if (FiltrarAnio) parametros.push(["FiltrarAnio", TYPES.Int, Number(FiltrarAnio)]);
   ejecutarSP("getTopProductosAnuales", parametros, req, res);
 });
 
-app.get('/api/getRankingClientes', (req, res) => {
+app.get('/api/getRankingClientes', verificarToken, (req, res) => {
   const { FiltrarAnio } = req.query;
   const parametros = [];
   if (FiltrarAnio) parametros.push(["FiltrarAnio", TYPES.Int, Number(FiltrarAnio)]);
   ejecutarSP("getTopClientesFacturasAnuales", parametros, req, res);
 });
 
-app.get('/api/getRankingProveedores', (req, res) => {
+app.get('/api/getRankingProveedores', verificarToken, (req, res) => {
   const { FiltrarAnio } = req.query;
   const parametros = [];
   if (FiltrarAnio) parametros.push(["FiltrarAnio", TYPES.Int, Number(FiltrarAnio)]);
   ejecutarSP("getTopProveedoresOrdenesAnuales", parametros, req, res);
 });
 
-app.get('/api/getTodosProveedores', (req, res) => {
+app.get('/api/getTodosProveedores', verificarToken, (req, res) => {
   ejecutarSP("getProveedores", [], req, res);
 });
 
-app.get('/api/getTodosColores', (req, res) => {
+app.get('/api/getTodosColores', verificarToken, (req, res) => {
   ejecutarSP("getColores", [], req, res);
 });
 
-app.get('/api/getTodasUnidadesEmpaquetamiento', (req, res) => {
+app.get('/api/getTodasUnidadesEmpaquetamiento', verificarToken, (req, res) => {
   ejecutarSP("getUnidadesEmpaquetamiento", [], req, res);
 });
 
-app.get('/api/getTodosGruposProducto', (req, res) => {
+app.get('/api/getTodosGruposProducto', verificarToken, (req, res) => {
   ejecutarSP("getGruposProducto", [], req, res);
 });
 
 
 
-app.put('/api/editarProducto/:id', (req, res) => {
+app.put('/api/editarProducto/:id', verificarToken, (req, res) => {
   const { id } = req.params;
   const {
     NombreProducto,
@@ -301,13 +301,13 @@ app.put('/api/editarProducto/:id', (req, res) => {
 });
 
 
-app.delete('/api/eliminarProducto/:id', (req, res) => {
+app.delete('/api/eliminarProducto/:id', verificarToken, (req, res) => {
   const { id } = req.params;
   ejecutarSP("eliminarStockItem", [["ProductoID", TYPES.Int, parseInt(id)]], req, res);
 });
 
 
-app.post('/api/insertarProducto', (req, res) => {
+app.post('/api/insertarProducto', verificarToken, (req, res) => {
   const {
     NombreProducto,
     IDProveedor,
@@ -358,9 +358,10 @@ app.post('/api/login', async (req, res) => {
     ];
 
     const resultado = await ejecutarSP("sp_login", parametros, req, res, true, sede);
+    console.log("Resultado de login:", resultado);
 
-    if (!resultado || resultado.length === 0)
-      return res.status(401).json({ mensaje: "Credenciales inválidas" });
+    if (!resultado || resultado.length === 0 || resultado[0].Exito !== 1)
+      return res.status(401).json({ mensaje: resultado[0].Mensaje || "Credenciales inválidas" });
 
     const token = jwt.sign({ usuario, sede }, "clave", { expiresIn: "8h" }); // reemplazar "clave" por process.env.JWT_SECRET
     res.json({ mensaje: "Autenticación exitosa", token });
