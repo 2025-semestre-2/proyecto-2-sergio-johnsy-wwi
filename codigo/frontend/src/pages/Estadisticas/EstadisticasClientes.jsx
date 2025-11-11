@@ -9,14 +9,16 @@ export default function EstadisticasClientes() {
   const [pagina, setPagina] = useState(1);
   const [paginaInput, setNumPaginaInput] = useState(1);
   const [filtroTexto, setFiltroTexto] = useState("");
+  const [sede, setSede] = useState("");
   const porPagina = 25;
 
   const token = localStorage.getItem("token");
+  const sesion = localStorage.getItem("sesion");
 
   // Función para obtener datos de la API con filtro
   const fetchDatos = (filtro = "") => {
     setLoading(true);
-    fetch(`http://localhost:3000/api/getEstadisticasDeClientes?filtro=${encodeURIComponent(filtro)}`, {
+    fetch(`http://localhost:3000/api/getEstadisticasDeClientes?filtro=${encodeURIComponent(filtro)}${sede ? `&FiltrarSede=${sede}` : ""}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -36,7 +38,7 @@ export default function EstadisticasClientes() {
 
   useEffect(() => {
     fetchDatos(filtroTexto);
-  }, [filtroTexto]);
+  }, [filtroTexto, sede]);
 
   const setNumPagina = (num) => {
     setNumPaginaInput(num);
@@ -82,6 +84,19 @@ export default function EstadisticasClientes() {
             value={filtroTexto}
             onChange={(e) => setFiltroTexto(e.target.value)}
           />
+          { sesion && JSON.parse(sesion).sede === "CORP" && (
+            <select
+              className="filtro-sede"
+              name=""
+              id=""
+              value={sede}
+              onChange={(e) => setSede(e.target.value)}
+            >
+              <option value="">Todos</option>
+              <option value="SJ">San José</option>
+              <option value="LI">Limón</option>
+            </select>
+          )}
         </div>
         {loading ? <p>Cargando...</p> : (
           <>

@@ -216,22 +216,23 @@ app.get('/api/getEstadisticasDeProveedores', verificarToken, (req, res) => {
 });
 
 app.get('/api/getEstadisticasDeClientes', verificarToken, (req, res) => {
-  const { FiltrarTexto } = req.query;
-  ejecutarSP("EstadisticasClientes", [["FiltrarTexto", TYPES.NVarChar, FiltrarTexto || null]], req, res);
+  const { FiltrarTexto, FiltrarSede } = req.query;
+  ejecutarSP("EstadisticasClientes", [["FiltrarTexto", TYPES.NVarChar, FiltrarTexto || null]], req, res, false, FiltrarSede);
 });
 
 app.get('/api/getRankingProductos', verificarToken, (req, res) => {
-  const { FiltrarAnio } = req.query;
+  const { FiltrarAnio, FiltrarSede } = req.query;
   const parametros = [];
   if (FiltrarAnio) parametros.push(["FiltrarAnio", TYPES.Int, Number(FiltrarAnio)]);
-  ejecutarSP("getTopProductosAnuales", parametros, req, res);
+  ejecutarSP("getTopProductosAnuales", parametros, req, res, false, FiltrarSede);
 });
 
 app.get('/api/getRankingClientes', verificarToken, (req, res) => {
-  const { FiltrarAnio } = req.query;
+  const { FiltrarAnio, FiltrarSede } = req.query;
+
   const parametros = [];
   if (FiltrarAnio) parametros.push(["FiltrarAnio", TYPES.Int, Number(FiltrarAnio)]);
-  ejecutarSP("getTopClientesFacturasAnuales", parametros, req, res);
+  ejecutarSP("getTopClientesFacturasAnuales", parametros, req, res, false, FiltrarSede);
 });
 
 app.get('/api/getRankingProveedores', verificarToken, (req, res) => {

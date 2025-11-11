@@ -7,13 +7,16 @@ export default function TopClientes() {
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [anio, setAnio] = useState(null);
+  const [sede, setSede] = useState("");
 
   const token = localStorage.getItem("token");
+  const sesion = localStorage.getItem("sesion");
 
   useEffect(() => {
     setLoading(true);
     let url = "http://localhost:3000/api/getRankingClientes";
     if (anio) url += `?FiltrarAnio=${anio}`;
+    if (sede) url += anio ? `&FiltrarSede=${sede}` : `?FiltrarSede=${sede}`;
 
     fetch(url, {
         headers: {
@@ -29,7 +32,7 @@ export default function TopClientes() {
         console.error("Error cargando top clientes:", err);
         setLoading(false);
       });
-  }, [anio]);
+  }, [anio, sede]);
 
   return (
     <div className="stats-main">
@@ -42,6 +45,20 @@ export default function TopClientes() {
             value={anio || ""}
             onChange={(e) => setAnio(e.target.value ? Number(e.target.value) : null)}
           />
+          
+          { sesion && JSON.parse(sesion).sede === "CORP" && (
+            <select
+              className="filtro-sede"
+              name=""
+              id=""
+              value={sede}
+              onChange={(e) => setSede(e.target.value)}
+            >
+              <option value="">Todos</option>
+              <option value="SJ">San José</option>
+              <option value="LI">Limón</option>
+            </select>
+          )}
         </div>
       </div>
 
