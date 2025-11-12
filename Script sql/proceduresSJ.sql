@@ -930,7 +930,7 @@ GO
 --GO
 
 
-ALTER PROCEDURE crearStockItem
+CREATE PROCEDURE crearStockItem
     @StockItemName NVARCHAR(255),
     @SupplierID INT = NULL,
     @Brand NVARCHAR(255) = NULL,
@@ -1028,7 +1028,7 @@ END;
 GO
 
 
-ALTER PROCEDURE crearInventarioProducto
+CREATE PROCEDURE crearInventarioProducto
     @StockItemID INT,
     @QuantityOnHand INT,
     @BinLocation NVARCHAR(20) = 'A1',

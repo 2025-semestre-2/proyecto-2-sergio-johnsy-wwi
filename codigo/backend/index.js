@@ -9,9 +9,15 @@ const port = 3000;
 app.use(express.json());
 app.use(cors());
 
+const configIPs = {
+    CORP: "172.22.193.85",
+    SJ: "172.22.193.85",
+    LI: "172.22.193.85"
+};
+
 //Para Linux
 const configCorp = {
-    server: '172.22.193.85',
+    server: configIPs.CORP,
     authentication: {
         type: 'default',
         options: {
@@ -27,7 +33,7 @@ const configCorp = {
 };
 
 const configSucursal = {
-    server: '172.22.193.85',
+    server: configIPs.SJ,
     authentication: {
         type: 'default',
         options: {
@@ -50,6 +56,7 @@ function ejecutarSP(nombreSP, parametros, req, res, devolver = false, sede = nul
     if (sedeFinal && sedeFinal !== 'CORP') {
       let configSede = { ...configSucursal };
       configSede.options.database = "Sucursal_" + sedeFinal;
+      configSede.server = configIPs[sedeFinal] || configSucursal.server;
       connection = new Connection(configSede);
     }
 
@@ -409,7 +416,7 @@ app.post('/api/login', async (req, res) => {
     res.json({ mensaje: "Autenticación exitosa", token });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error en el servidor" });
+     res.status(500).json({ error: "Error en el servidor" });
   }
 });
 
