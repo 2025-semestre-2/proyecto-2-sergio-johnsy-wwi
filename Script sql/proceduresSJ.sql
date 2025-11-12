@@ -882,24 +882,27 @@ GO
 --    SET NOCOUNT ON;
 --
 --    INSERT INTO [Warehouse].[StockItems] (
---        StockItemName,
---        SupplierID,
---        Brand,
---        Size,
---        ColorID,
---        UnitPackageID,
---        OuterPackageID,
---        UnitPrice,
---        RecommendedRetailPrice,
---        TaxRate,
---        TypicalWeightPerUnit,
---        CustomFields,
---        LeadTimeDays,
---        QuantityPerOuter,
---        IsChillerStock,
---        LastEditedBy,
---        ValidFrom,
---        ValidTo
+--        StockItemName, --
+--        SupplierID, --
+--        Brand, --
+--        Size, --
+--        ColorID, --
+--        UnitPackageID, --
+--        OuterPackageID, --
+--        UnitPrice, --
+--        RecommendedRetailPrice, --
+--        TaxRate, --
+--        TypicalWeightPerUnit, --
+--        CustomFields, --
+--        LeadTimeDays, --
+--        QuantityPerOuter, --
+--        IsChillerStock, --
+--        Barcode, --
+--        MarketingComments, --
+--        InternalComments, --
+--        Photo, --
+--        CustomFields, --
+--        LastEditedBy --
 --    )
 --    VALUES (
 --        @StockItemName,
@@ -925,6 +928,146 @@ GO
 --    SELECT SCOPE_IDENTITY() AS StockItemID;
 --END;
 --GO
+
+
+CREATE PROCEDURE crearStockItem
+    @StockItemName NVARCHAR(255),
+    @SupplierID INT = NULL,
+    @Brand NVARCHAR(255) = NULL,
+    @Size NVARCHAR(50) = NULL,
+    @ColorID INT = NULL,
+    @UnitPackageID INT = NULL,
+    @OuterPackageID INT = NULL,
+    @UnitPrice DECIMAL(18,2) = 0,
+    @RecommendedRetailPrice DECIMAL(18,2) = 0,
+    @TaxRate DECIMAL(5,2) = 0,
+    @TypicalWeightPerUnit DECIMAL(10,2) = 0,
+    @CustomFields NVARCHAR(MAX) = NULL,
+    @QuantityPerOuter INT = 1,
+    @Barcode NVARCHAR(100) = NULL,
+    @MarketingComments NVARCHAR(MAX) = NULL,
+    @InternalComments NVARCHAR(MAX) = NULL,
+    @Photo VARBINARY(MAX) = NULL,
+    @GruposID VARCHAR(100) = NULL,
+    @LastEditedBy INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO [Warehouse].[StockItems] (
+        StockItemName,
+        SupplierID,
+        Brand,
+        Size,
+        ColorID,
+        UnitPackageID,
+        OuterPackageID,
+        UnitPrice,
+        RecommendedRetailPrice,
+        TaxRate,
+        TypicalWeightPerUnit,
+        CustomFields,
+        LeadTimeDays,
+        QuantityPerOuter,
+        IsChillerStock,
+        Barcode,
+        MarketingComments,
+        InternalComments,
+        Photo,
+        LastEditedBy,
+        ValidFrom,
+        ValidTo
+    )
+    VALUES (
+        @StockItemName,
+        @SupplierID,
+        @Brand,
+        @Size,
+        @ColorID,
+        @UnitPackageID,
+        @OuterPackageID,
+        @UnitPrice,
+        @RecommendedRetailPrice,
+        @TaxRate,
+        @TypicalWeightPerUnit,
+        @CustomFields,
+        0, -- LeadTimeDays
+        @QuantityPerOuter, -- QuantityPerOuter
+        0, -- IsChillerStock
+        @Barcode,
+        @MarketingComments,
+        @InternalComments,
+        @Photo,
+        @LastEditedBy,
+        DEFAULT, -- ValidFrom
+        DEFAULT  -- ValidTo
+    );
+
+    DECLARE @NewStockItemID INT;
+    SET @NewStockItemID = SCOPE_IDENTITY();
+
+    IF @GruposID IS NOT NULL
+    BEGIN
+        INSERT INTO Sucursal_SJ.Warehouse.StockItemStockGroups (
+            StockItemID,
+            StockGroupID,
+            LastEditedBy,
+            LastEditedWhen
+        )
+        SELECT 
+            @NewStockItemID,
+            TRY_CAST(value AS INT),
+            @LastEditedBy,
+            GETDATE()
+        FROM STRING_SPLIT(@GruposID, ',')
+        WHERE TRY_CAST(value AS INT) IS NOT NULL;
+    END;
+
+    SELECT @NewStockItemID AS StockItemID;
+END;
+GO
+
+
+CREATE PROCEDURE crearInventarioProducto
+    @StockItemID INT,
+    @QuantityOnHand INT,
+    @BinLocation NVARCHAR(20) = 'A1',
+    @LastStocktakeQuantity INT = 0,
+    @LastCostPrice DECIMAL(18,2) = 0,
+    @ReorderLevel INT = 0,
+    @TargetStockLevel INT = 0,
+    @LastEditedBy INT = 1,
+    @Branch NVARCHAR(20) = 'SJ'
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO Warehouse.StockItemHoldings (
+        StockItemID, 
+        QuantityOnHand, 
+        BinLocation, 
+        LastStocktakeQuantity, 
+        LastCostPrice, 
+        ReorderLevel, 
+        TargetStockLevel, 
+        LastEditedBy, 
+        LastEditedWhen, 
+        Branch
+    )
+    VALUES (
+        @StockItemID,
+        @QuantityOnHand,
+        @BinLocation,
+        @LastStocktakeQuantity,
+        @LastCostPrice,
+        @ReorderLevel,
+        @TargetStockLevel,
+        @LastEditedBy,
+        GETDATE(),
+        @Branch
+    );
+END;
+GO
 
 
 CREATE PROCEDURE sp_login

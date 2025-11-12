@@ -88,11 +88,11 @@ function Navbar() {
                   <p className="user-name">{userData.nombre}</p>
                   <p className="user-sede">{userData.sede}</p>
                 </div>
-                <button className="user-option">Cambiar sede</button>
+                {/*<button className="user-option">Cambiar sede</button>*/}
                 <button
                   className="user-option logout"
                   onClick={() => {
-                    sessionStorage.clear();
+                    localStorage.clear();
                     window.location.reload();
                   }}
                 >

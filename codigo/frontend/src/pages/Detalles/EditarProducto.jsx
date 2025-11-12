@@ -46,22 +46,38 @@ export default function EditarProducto() {
         setLoading(false);
       });
 
-    fetch(`http://localhost:3000/api/getTodosProveedores`)
+    fetch(`http://localhost:3000/api/getTodosProveedores`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then(res => res.json())
       .then(setProveedores)
       .catch(err => setError(err.message));
 
-    fetch(`http://localhost:3000/api/getTodosColores`)
+    fetch(`http://localhost:3000/api/getTodosColores`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then(res => res.json())
       .then(setColores)
       .catch(err => setError(err.message));
 
-    fetch(`http://localhost:3000/api/getTodasUnidadesEmpaquetamiento`)
+    fetch(`http://localhost:3000/api/getTodasUnidadesEmpaquetamiento`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then(res => res.json())
       .then(setUnidadesEmpaquetamiento)
       .catch(err => setError(err.message));
 
-    fetch(`http://localhost:3000/api/getTodosGruposProducto`)
+    fetch(`http://localhost:3000/api/getTodosGruposProducto`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then(res => res.json())
       .then(setGruposProducto)
       .catch(err => setError(err.message));
@@ -85,7 +101,10 @@ export default function EditarProducto() {
     setGuardando(true);
     fetch(`http://localhost:3000/api/editarProducto/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json" ,
+        Authorization: `Bearer ${token}`
+      },
       body: JSON.stringify(producto),
     })
       .then((res) => {

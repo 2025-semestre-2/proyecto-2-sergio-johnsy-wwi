@@ -29,7 +29,7 @@ CREATE TABLE #TempCities (
 GO
 
 BULK INSERT #TempCities
-FROM '/var/opt/mssql/data/Poblados_de_Costa_Rica.csv'
+FROM 'C:\Program Files\Microsoft SQL Server\MSSQL16.CORP\MSSQL\CSV\Poblados_de_Costa_Rica.csv'
 WITH (
     FIRSTROW = 2,
     FIELDTERMINATOR = ',',

@@ -116,6 +116,16 @@
   width: 25vh;
 }
 
+.filtro-sede {
+  position: relative;
+  display: inline-block;
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-left: 10px;
+}
+
 .stats-filtros {
   display: flex;
   gap: 10px;

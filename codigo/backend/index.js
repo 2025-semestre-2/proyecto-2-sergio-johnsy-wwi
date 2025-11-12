@@ -9,9 +9,15 @@ const port = 3000;
 app.use(express.json());
 app.use(cors());
 
+const configIPs = {
+    CORP: "172.22.193.85",
+    SJ: "172.22.193.85",
+    LI: "172.22.193.85"
+};
+
 //Para Linux
 const configCorp = {
-    server: '172.22.193.85',
+    server: configIPs.CORP,
     authentication: {
         type: 'default',
         options: {
@@ -27,7 +33,7 @@ const configCorp = {
 };
 
 const configSucursal = {
-    server: '172.22.193.85',
+    server: configIPs.SJ,
     authentication: {
         type: 'default',
         options: {
@@ -50,6 +56,7 @@ function ejecutarSP(nombreSP, parametros, req, res, devolver = false, sede = nul
     if (sedeFinal && sedeFinal !== 'CORP') {
       let configSede = { ...configSucursal };
       configSede.options.database = "Sucursal_" + sedeFinal;
+      configSede.server = configIPs[sedeFinal] || configSucursal.server;
       connection = new Connection(configSede);
     }
 
@@ -216,22 +223,23 @@ app.get('/api/getEstadisticasDeProveedores', verificarToken, (req, res) => {
 });
 
 app.get('/api/getEstadisticasDeClientes', verificarToken, (req, res) => {
-  const { FiltrarTexto } = req.query;
-  ejecutarSP("EstadisticasClientes", [["FiltrarTexto", TYPES.NVarChar, FiltrarTexto || null]], req, res);
+  const { FiltrarTexto, FiltrarSede } = req.query;
+  ejecutarSP("EstadisticasClientes", [["FiltrarTexto", TYPES.NVarChar, FiltrarTexto || null]], req, res, false, FiltrarSede);
 });
 
 app.get('/api/getRankingProductos', verificarToken, (req, res) => {
-  const { FiltrarAnio } = req.query;
+  const { FiltrarAnio, FiltrarSede } = req.query;
   const parametros = [];
   if (FiltrarAnio) parametros.push(["FiltrarAnio", TYPES.Int, Number(FiltrarAnio)]);
-  ejecutarSP("getTopProductosAnuales", parametros, req, res);
+  ejecutarSP("getTopProductosAnuales", parametros, req, res, false, FiltrarSede);
 });
 
 app.get('/api/getRankingClientes', verificarToken, (req, res) => {
-  const { FiltrarAnio } = req.query;
+  const { FiltrarAnio, FiltrarSede } = req.query;
+
   const parametros = [];
   if (FiltrarAnio) parametros.push(["FiltrarAnio", TYPES.Int, Number(FiltrarAnio)]);
-  ejecutarSP("getTopClientesFacturasAnuales", parametros, req, res);
+  ejecutarSP("getTopClientesFacturasAnuales", parametros, req, res, false, FiltrarSede);
 });
 
 app.get('/api/getRankingProveedores', verificarToken, (req, res) => {
@@ -307,7 +315,7 @@ app.delete('/api/eliminarProducto/:id', verificarToken, (req, res) => {
 });
 
 
-app.post('/api/insertarProducto', verificarToken, (req, res) => {
+app.post('/api/insertarProducto', verificarToken, async (req, res) => {
   const {
     NombreProducto,
     IDProveedor,
@@ -320,14 +328,31 @@ app.post('/api/insertarProducto', verificarToken, (req, res) => {
     PrecioUnitario,
     PrecioVentaRecomendado,
     TasaImpuesto,
+    PesoUnitario,
     CantidadDisponible,
-    GruposProductoIDs
+    GruposProductoIDs,
+    CodigoBarras,
+    ComentariosMarketing,
+    ComentariosInternos,
+    Foto,
+    // Inventario:
+    StockItemID,  
+    BinLocation, 
+    LastStocktakeQuantity, 
+    LastCostPrice, 
+    ReorderLevel, 
+    TargetStockLevel
   } = req.body;
+
   if ([NombreProducto, PrecioUnitario, TasaImpuesto].includes(undefined) || NombreProducto.trim() === "") {
     console.log("Faltan campos obligatorios o están vacíos");
     return res.status(400).json({ error: 'Faltan campos obligatorios o están vacíos' });
   }
-  const gruposProductoStr = Array.isArray(GruposProductoIDs) ? JSON.stringify({ grupos: GruposProductoIDs }) : null;
+
+  let gruposProductoStr = null
+  if (GruposProductoIDs != [] && GruposProductoIDs != null) {
+    gruposProductoStr = GruposProductoIDs.join(",")
+  }
 
   const parametros = [
     ["StockItemName", TYPES.NVarChar, NombreProducto],
@@ -340,11 +365,35 @@ app.post('/api/insertarProducto', verificarToken, (req, res) => {
     ["UnitPrice", TYPES.Money, PrecioUnitario],
     ["RecommendedRetailPrice", TYPES.Money, PrecioVentaRecomendado || 0],
     ["TaxRate", TYPES.Float, TasaImpuesto || 0],
-    ["TypicalWeightPerUnit", TYPES.Float, 0], // si no lo tienes, default 0
-    ["CustomFields", TYPES.NVarChar, gruposProductoStr]
+    ["TypicalWeightPerUnit", TYPES.Float, PesoUnitario || 0],
+    ["CustomFields", TYPES.NVarChar, "{}"],
+    ["QuantityPerOuter", TYPES.Int, CantidadPorEmpaquetamiento || null],
+    ["Barcode", TYPES.NVarChar, CodigoBarras || null],
+    ["MarketingComments", TYPES.NVarChar, ComentariosMarketing || null],
+    ["InternalComments", TYPES.NVarChar, ComentariosInternos || null],
+    ["Photo", TYPES.VarBinary, Foto || null],
+    ["GruposID", TYPES.NVarChar, gruposProductoStr],
+    ["LastEditedBy", TYPES.Int, 1 || null]
   ];
 
-  ejecutarSP("crearStockItem", parametros, req, res);
+  const resultado1 = await ejecutarSP("crearStockItem", parametros, req, res, true);
+
+  const parametrosInventario = [
+    ["StockItemID", TYPES.Int, resultado1[0]?.StockItemID || StockItemID],
+    ["QuantityOnHand", TYPES.Int, CantidadDisponible || 0],
+    ["BinLocation", TYPES.NVarChar, BinLocation || null],
+    ["LastStocktakeQuantity", TYPES.Int, LastStocktakeQuantity || 0],
+    ["LastCostPrice", TYPES.Money, LastCostPrice || 0],
+    ["ReorderLevel", TYPES.Int, ReorderLevel || 0],
+    ["TargetStockLevel", TYPES.Int, TargetStockLevel || 0],
+    ["LastEditedBy", TYPES.Int, 1 || null],
+    ["Branch", TYPES.NVarChar, req.body.sede || "SJ"]
+  ];
+  
+  const resultado2 = await ejecutarSP("crearInventarioProducto", parametrosInventario, req, res, true);
+
+  res.json({ Mensaje: "Producto creado correctamente", ProductoID: resultado1[0]?.NewStockItemID, InventarioID: resultado2[0]?.NewInventoryID });
+
 });
 
 
@@ -367,7 +416,7 @@ app.post('/api/login', async (req, res) => {
     res.json({ mensaje: "Autenticación exitosa", token });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error en el servidor" });
+     res.status(500).json({ error: "Error en el servidor" });
   }
 });
 
