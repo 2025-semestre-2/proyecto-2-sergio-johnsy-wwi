@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import GruposCheckbox from "../../components/GruposCheckbox.jsx"; // 👈 Importante
 import "../../css/DetalleCliente.css";
 
 export default function EditarProducto() {
@@ -21,22 +22,23 @@ export default function EditarProducto() {
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     fetch(`http://localhost:3000/api/getProductoID/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo cargar la información del producto");
         return res.json();
       })
       .then((data) => {
         const prod = data[0];
+        // Parsear grupos si vienen como texto
         if (typeof prod.GruposProductoIDs === "string") {
-            try {
-                prod.GruposProductoIDs = JSON.parse(prod.GruposProductoIDs);
-            } catch {
-                prod.GruposProductoIDs = prod.GruposProductoIDs.split(",").map(x => parseInt(x.trim()));
-            }
+          try {
+            prod.GruposProductoIDs = JSON.parse(prod.GruposProductoIDs);
+          } catch {
+            prod.GruposProductoIDs = prod.GruposProductoIDs.split(",").map((x) => parseInt(x.trim()));
+          }
         }
         setProducto(prod);
         setLoading(false);
@@ -46,64 +48,40 @@ export default function EditarProducto() {
         setLoading(false);
       });
 
-    fetch(`http://localhost:3000/api/getTodosProveedores`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      .then(res => res.json())
-      .then(setProveedores)
-      .catch(err => setError(err.message));
+    // Cargar listas auxiliares
+    const fetchListas = async () => {
+      try {
+        const [prov, col, empa, grupos] = await Promise.all([
+          fetch(`http://localhost:3000/api/getTodosProveedores`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`http://localhost:3000/api/getTodosColores`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`http://localhost:3000/api/getTodasUnidadesEmpaquetamiento`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`http://localhost:3000/api/getTodosGruposProducto`, { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
 
-    fetch(`http://localhost:3000/api/getTodosColores`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      .then(res => res.json())
-      .then(setColores)
-      .catch(err => setError(err.message));
+        setProveedores(await prov.json());
+        setColores(await col.json());
+        setUnidadesEmpaquetamiento(await empa.json());
+        setGruposProducto(await grupos.json());
+      } catch (err) {
+        setError(err.message);
+      }
+    };
 
-    fetch(`http://localhost:3000/api/getTodasUnidadesEmpaquetamiento`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      .then(res => res.json())
-      .then(setUnidadesEmpaquetamiento)
-      .catch(err => setError(err.message));
-
-    fetch(`http://localhost:3000/api/getTodosGruposProducto`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      .then(res => res.json())
-      .then(setGruposProducto)
-      .catch(err => setError(err.message));
+    fetchListas();
   }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProducto(prev => ({ ...prev, [name]: value }));
+    setProducto((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleChangeMultiple = (e) => {
-    const { options, name } = e.target;
-    const selected = Array.from(options)
-        .filter(o => o.selected)
-        .map(o => parseInt(o.value));
-    setProducto(prev => ({ ...prev, [name]: selected }));
-    };
-
   const handleGuardar = () => {
-    console.log("Guardando producto:", producto);
     setGuardando(true);
     fetch(`http://localhost:3000/api/editarProducto/${id}`, {
       method: "PUT",
-      headers: { 
-        "Content-Type": "application/json" ,
-        Authorization: `Bearer ${token}`
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(producto),
     })
@@ -125,7 +103,7 @@ export default function EditarProducto() {
   if (error) return <p>Error: {error}</p>;
   if (!producto) return <p>No se encontró el producto.</p>;
 
-  return !loading ? (
+  return (
     <div className="cliente-detalle-container">
       <div className="cliente-detalle-header">
         <button className="btn-volver" onClick={() => navigate(-1)}>Volver</button>
@@ -153,35 +131,23 @@ export default function EditarProducto() {
               <strong>Color:</strong>
               <select className="inputEditarProducto" name="ColorID" value={producto.ColorID ?? ""} onChange={handleChange}>
                 <option value="">- Seleccione color -</option>
-                {colores.map(c => (
+                {colores.map((c) => (
                   <option key={c.ID} value={c.ID}>{c.Nombre}</option>
                 ))}
               </select>
             </p>
-            <p>
+
+            {/* ✅ Reemplazo del select múltiple por GruposCheckbox */}
             <strong>Grupos:</strong>
-            <select
-                className="inputEditarProducto"
-                name="GruposProductoIDs"
-                multiple
-                value={producto.GruposProductoIDs || []}
-                onChange={handleChangeMultiple}
-                size={5}
-            >
-                {gruposProducto.map(g => (
-                <option key={g.ID} value={g.ID}>{g.Nombre}</option>
-                ))}
-            </select>
-            </p>
+            <GruposCheckbox
+              gruposProducto={gruposProducto}
+              producto={producto}
+              setProducto={setProducto}
+            />
+
             <p>
-                <strong>Palabras Clave:</strong>
-                <input
-                    className="inputEditarProducto"
-                    type="text"
-                    name="PalabrasClave"
-                    value={producto.PalabrasClave || ""}
-                    disabled
-                />
+              <strong>Palabras Clave:</strong>
+              <input className="inputEditarProducto" type="text" name="PalabrasClave" value={producto.PalabrasClave || ""} disabled />
             </p>
           </div>
 
@@ -221,7 +187,7 @@ export default function EditarProducto() {
               <strong>Unidad de empaquetamiento:</strong>
               <select className="inputEditarProducto" name="UnidadEmpaquetamientoID" value={producto.UnidadEmpaquetamientoID ?? ""} onChange={handleChange}>
                 <option value="">- Seleccione unidad -</option>
-                {unidadesEmpaquetamiento.map(u => (
+                {unidadesEmpaquetamiento.map((u) => (
                   <option key={u.ID} value={u.ID}>{u.Nombre}</option>
                 ))}
               </select>
@@ -230,7 +196,7 @@ export default function EditarProducto() {
               <strong>Empaque externo:</strong>
               <select className="inputEditarProducto" name="EmpaquetamientoID" value={producto.EmpaquetamientoID ?? ""} onChange={handleChange}>
                 <option value="">- Seleccione empaque -</option>
-                {unidadesEmpaquetamiento.map(u => (
+                {unidadesEmpaquetamiento.map((u) => (
                   <option key={u.ID} value={u.ID}>{u.Nombre}</option>
                 ))}
               </select>
@@ -247,7 +213,7 @@ export default function EditarProducto() {
               <strong>Proveedor:</strong>
               <select className="inputEditarProducto" name="IDProveedor" value={producto.IDProveedor ?? ""} onChange={handleChange}>
                 <option value="">- Seleccione proveedor -</option>
-                {proveedores.map(p => (
+                {proveedores.map((p) => (
                   <option key={p.ID} value={p.ID}>{p.Nombre}</option>
                 ))}
               </select>
@@ -263,5 +229,5 @@ export default function EditarProducto() {
         <button className="btn-borrar" onClick={() => navigate(-1)}>Cancelar</button>
       </div>
     </div>
-  ) : (<p>Cargando datos...</p>);
+  );
 }

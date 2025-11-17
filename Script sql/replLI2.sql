@@ -55,10 +55,11 @@ GO
 
 ------
 
+
 USE [Sucursal_LI];
 EXEC sp_addsubscription 
     @publication = N'Repl-Corp-WWI', 
-    @subscriber = '192.168.100.95',   -- nombre del servidor CORP o su IP
+    @subscriber = '172.20.0.10',   -- nombre del servidor CORP o su IP
     @destination_db = N'Corporativo', 
     @subscription_type = N'Push',
     @sync_type = N'replication support only',
@@ -69,10 +70,10 @@ EXEC sp_addsubscription
 
 EXEC sp_addpushsubscription_agent 
     @publication = N'Repl-Corp-WWI', 
-    @subscriber = '192.168.100.95', 
+    @subscriber = '172.20.0.10', 
     @subscriber_db = N'Corporativo', 
-    @subscriber_login = N'corp', 
-    @subscriber_password = N'WWI2025*Corp', 
+    @subscriber_login = N'sa', 
+    @subscriber_password = N'CORP_2025*', 
     @subscriber_security_mode = 0, 
     @frequency_type = 64, 
     @frequency_interval = 0,
@@ -91,7 +92,7 @@ GO
 
 EXEC sp_addsubscription 
 	@publication = N'Repl-Corp-WWI', 
-	@subscriber = 'SANJOSE', 
+	@subscriber = '172.20.0.11', 
 	@destination_db = N'Sucursal_SJ', 
 	@subscription_type = N'Push',
 	@sync_type = N'replication support only',
@@ -101,7 +102,7 @@ EXEC sp_addsubscription
 
 EXEC sp_addpushsubscription_agent 
 	@publication = N'Repl-Corp-WWI', 
-	@subscriber = 'SANJOSE', 
+	@subscriber = '172.20.0.11', 
 	@subscriber_db = N'Sucursal_SJ', 
 	@subscriber_login = N'sa',
     @subscriber_password = N'SJ_2025*',
@@ -120,18 +121,51 @@ EXEC sp_addpushsubscription_agent
 	@dts_package_location = N'Distributor'
 ;
 GO
+--SIN TAMAÑO MAXIMO DE REPLICACION
+EXEC sp_configure 'max text repl size', -1;
+RECONFIGURE;
 
--- Eliminar la suscripción push (esto elimina el agente asociado)
-USE [Sucursal_SJ];
-EXEC sp_dropsubscription
-    @publication = N'Repl-SJ-WWI',
-    @subscriber = N'CORP',  -- el nombre que usaste
-    @destination_db = N'Corporativo',
-    @article = N'all';
-GO
 
 -- 5. Agregar el nodo al diagrama Peer-to-Peer
 
 -- Filtra por la base que te interesa (ej. Sucursal_LI)
 
 ;
+--INVENTARIO Y FACTURACION
+EXEC sp_addsubscription 
+    @publication = N'Repl-Corp2',
+    @subscriber = N'172.20.0.10',
+    @destination_db = N'Corporativo',
+    @subscription_type = N'Push',
+    @sync_type = N'replication support only',
+    @article = N'all',
+    @update_mode = N'read only',
+    @subscriber_type = 0;
+GO
+
+EXEC sp_addpushsubscription_agent 
+    @publication = N'Repl-Corp2',
+    @subscriber = N'172.20.0.10',
+    @subscriber_db = N'Corporativo',
+    @job_login = NULL,
+    @job_password = NULL,
+    @subscriber_security_mode = 0,
+    @subscriber_login = N'sa',
+    @subscriber_password = N'CORP_2025*',
+    @frequency_type = 64,
+    @frequency_interval = 1,
+    @frequency_relative_interval = 1,
+    @frequency_recurrence_factor = 0,
+    @frequency_subday = 4,
+    @frequency_subday_interval = 5,
+    @active_start_time_of_day = 0,
+    @active_end_time_of_day = 235959,
+    @active_start_date = 0,
+    @active_end_date = 0,
+    @dts_package_location = N'Distributor';
+GO
+;
+GO
+
+
+GO

@@ -301,14 +301,6 @@ CREATE TABLE Sales.OrderLines (
     LastEditedWhen DATETIME2(7) NOT NULL
 )
 GO
-/*CREATE SEQUENCE Seq_Inventario_Global
-    START WITH 100000
-    INCREMENT BY 1;
-
-CREATE SEQUENCE Seq_Factura_Global
-    START WITH 100000
-    INCREMENT BY 1;
-*/
 CREATE TABLE Sales.Invoices (
     InvoiceID INT NOT NULL PRIMARY KEY,
     CustomerID INT NOT NULL FOREIGN KEY REFERENCES Sales.Customers(CustomerID),
@@ -381,4 +373,21 @@ CREATE TABLE Application.Users(
     Email NVARCHAR(100) NULL,
     HireDate DATE NOT NULL DEFAULT GETDATE()
 )
+
+
+CREATE SEQUENCE Seq_Factura_Global
+    START WITH 100000
+    INCREMENT BY 1;
+
+
+GO
+
+CREATE PROCEDURE ObtenerIDFactura
+    @NuevoID INT OUTPUT
+AS
+BEGIN
+    SET @NuevoID = NEXT VALUE FOR Seq_Factura_Global;
+END
+
+
 

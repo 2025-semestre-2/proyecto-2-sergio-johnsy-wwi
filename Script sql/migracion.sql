@@ -24,7 +24,7 @@ WHERE StockItemID BETWEEN 1 AND 100;
 GO
 
 
-DELETE FROM Application.People
+
 
 
 -- Application.People

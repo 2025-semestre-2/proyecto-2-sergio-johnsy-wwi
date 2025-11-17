@@ -39,7 +39,7 @@ BEGIN
             customer.DeliveryLocation.Long AS Longitud
 
         FROM Sales.Customers AS customer
-            INNER JOIN Sucursal_SJ.Sales.Customers AS sucCustomer
+            INNER JOIN [sql_sj].[Sucursal_SJ].Sales.Customers AS sucCustomer
                 ON customer.CustomerID = sucCustomer.CustomerID
             INNER JOIN Sales.CustomerCategories AS category
                 ON sucCustomer.CustomerCategoryID = category.CustomerCategoryID
@@ -89,7 +89,7 @@ BEGIN
             dm.DeliveryMethodName AS MetodoEntrega
             
         FROM Sales.Customers AS customer
-            INNER JOIN Sucursal_SJ.Sales.Customers AS sucCustomer
+            INNER JOIN [sql_sj].[Sucursal_SJ].Sales.Customers AS sucCustomer
                 ON customer.CustomerID = sucCustomer.CustomerID
             INNER JOIN Sales.CustomerCategories AS cc
                 ON sucCustomer.CustomerCategoryID = cc.CustomerCategoryID
@@ -384,7 +384,9 @@ GO
 
 
 
-CREATE VIEW vw_VentasResumen AS
+CREATE VIEW dbo.vw_VentasResumen 
+WITH SCHEMABINDING
+AS
 SELECT
     venta.InvoiceID AS NumeroFactura,
     venta.InvoiceDate AS FechaVenta,
@@ -406,6 +408,9 @@ GROUP BY
     dm.DeliveryMethodName;
 GO
 
+CREATE UNIQUE CLUSTERED INDEX IX_vw_VentasResumen ON dbo.vw_VentasResumen(NumeroFactura);
+GO
+
 
 CREATE PROCEDURE getVentasSimple
     @FiltrarCliente NVARCHAR(100) = NULL,
@@ -425,7 +430,7 @@ BEGIN
     BEGIN TRY
 
         SELECT NumeroFactura, FechaVenta, ClienteID, NombreCliente, MetodoEntregaID, MetodoEntrega, MontoTotal, COUNT(*) OVER() AS TotalFilas
-        FROM vw_VentasResumen
+        FROM dbo.vw_VentasResumen
         WHERE
             (@FiltrarCliente IS NULL OR NombreCliente LIKE '%' + @FiltrarCliente + '%')
             AND (@FiltrarFechaDesde IS NULL OR FechaVenta >= @FiltrarFechaDesde)
@@ -557,7 +562,9 @@ GO
 
 -- #1 Estadísticas de Proveedores
 
-CREATE VIEW vw_OrdenProveedorTotal AS
+CREATE VIEW dbo.vw_OrdenProveedorTotal
+WITH SCHEMABINDING
+AS
 SELECT
     po.PurchaseOrderID,
     proveedor.SupplierID,
@@ -580,6 +587,8 @@ GROUP BY
     categorias.SupplierCategoryName;
 GO
 
+CREATE UNIQUE CLUSTERED INDEX IX_vw_OrdenProveedorTotal ON dbo.vw_OrdenProveedorTotal(PurchaseOrderID);
+GO
 
 CREATE PROCEDURE EstadisticasProveedores
     @FiltrarTexto NVARCHAR(100) = NULL
@@ -610,7 +619,7 @@ BEGIN
             GROUPING(orden.SupplierName) AS EsTotalGeneral,
             GROUPING(orden.SupplierCategoryName) AS EsSubtotalPorProveedor
 
-        FROM vw_OrdenProveedorTotal AS orden
+        FROM dbo.vw_OrdenProveedorTotal AS orden
         WHERE (@FiltrarTexto IS NULL OR orden.SupplierName LIKE '%' + @FiltrarTexto + '%'
             OR @FiltrarTexto IS NULL OR orden.SupplierCategoryName LIKE '%' + @FiltrarTexto + '%')
         GROUP BY ROLLUP (orden.SupplierName, orden.SupplierCategoryName)
@@ -634,7 +643,9 @@ GO
 
 
 
-CREATE VIEW vw_OrdenClientesTotal AS
+CREATE VIEW dbo.vw_OrdenClientesTotal
+WITH SCHEMABINDING
+AS
 SELECT
     venta.InvoiceID,
     cliente.CustomerID,
@@ -646,7 +657,7 @@ LEFT JOIN Sales.InvoiceLines AS lineas
     ON venta.InvoiceID = lineas.InvoiceID
 LEFT JOIN Sales.Customers AS cliente
     ON venta.CustomerID = cliente.CustomerID
-LEFT JOIN Sucursal_SJ.Sales.Customers AS cliente2
+LEFT JOIN [sql_sj].[Sucursal_SJ].Sales.Customers AS cliente2
     ON venta.CustomerID = cliente.CustomerID
 LEFT JOIN Sales.CustomerCategories AS categorias
     ON cliente2.CustomerCategoryID = categorias.CustomerCategoryID
@@ -655,6 +666,9 @@ GROUP BY
     cliente.CustomerID,
     cliente.CustomerName,
     categorias.CustomerCategoryName;
+GO
+
+CREATE UNIQUE CLUSTERED INDEX IX_vw_OrdenClientesTotal ON dbo.vw_OrdenClientesTotal(InvoiceID);
 GO
 
 
@@ -687,7 +701,7 @@ BEGIN
             GROUPING(orden.CustomerName) AS EsTotalGeneral,
             GROUPING(orden.CustomerCategoryName) AS EsSubtotalPorCliente
 
-        FROM vw_OrdenClientesTotal AS orden
+        FROM dbo.vw_OrdenClientesTotal AS orden
         WHERE (@FiltrarTexto IS NULL OR orden.CustomerName LIKE '%' + @FiltrarTexto + '%'
             OR @FiltrarTexto IS NULL OR orden.CustomerCategoryName LIKE '%' + @FiltrarTexto + '%')
         GROUP BY ROLLUP (orden.CustomerName, orden.CustomerCategoryName)
@@ -710,7 +724,9 @@ GO
 -- #3 Estadísticas de Productos
 
 -- LISTO
-CREATE VIEW vw_RankingAnualProducts AS
+CREATE VIEW dbo.vw_RankingAnualProducts
+WITH SCHEMABINDING
+AS
 SELECT 
     YEAR(venta.InvoiceDate) AS Anio,
     producto.StockItemID as ProductoID,
@@ -731,6 +747,8 @@ GROUP BY
     producto.StockItemName
 GO
 
+CREATE UNIQUE CLUSTERED INDEX IX_vw_RankingAnualProducts ON dbo.vw_RankingAnualProducts(Anio, ProductoID);
+
 
 -- LISTO
 CREATE PROCEDURE getTopProductosAnuales
@@ -740,7 +758,7 @@ BEGIN
     SET NOCOUNT ON;
 
     SELECT Anio, Ranking, ProductoID, NombreProducto, GananciaTotal
-    FROM vw_RankingAnualProducts
+    FROM dbo.vw_RankingAnualProducts
     WHERE (
         Ranking <= 5
         AND (@FiltrarAnio IS NULL OR Anio = @FiltrarAnio))
@@ -753,7 +771,9 @@ GO
 
 -- #4 Estadísticas de top 5 de clientes con mayor cantidad de facturas emitidas y mostrar monto total
 
-CREATE VIEW vw_RankingAnualClientesFacturas AS
+CREATE VIEW dbo.vw_RankingAnualClientesFacturas
+WITH SCHEMABINDING
+AS
 SELECT 
     YEAR(venta.InvoiceDate) AS Anio,
     cliente.CustomerID as ClienteID,
@@ -774,6 +794,9 @@ GROUP BY
     cliente.CustomerName
 GO
 
+CREATE UNIQUE CLUSTERED INDEX IX_vw_RankingAnualClientesFacturas ON dbo.vw_RankingAnualClientesFacturas(Anio, ClienteID);
+GO;
+
 
 CREATE PROCEDURE getTopClientesFacturasAnuales
     @FiltrarAnio INT = NULL
@@ -782,7 +805,7 @@ BEGIN
     SET NOCOUNT ON;
 
     SELECT Anio, Ranking, ClienteID, NombreCliente, GananciaTotal
-    FROM vw_RankingAnualClientesFacturas
+    FROM dbo.vw_RankingAnualClientesFacturas
     WHERE (
         Ranking <= 5
         AND (@FiltrarAnio IS NULL OR Anio = @FiltrarAnio))
@@ -795,7 +818,9 @@ GO
 
 -- #5 Estadísticas de top 5 de proveedores con mayor cantidad de ordenes de compra emitidas y mostrar monto total por año
 
-CREATE VIEW vw_RankingAnualProveedoresOrdenes AS
+CREATE VIEW dbo.vw_RankingAnualProveedoresOrdenes
+WITH SCHEMABINDING
+AS
 SELECT 
     YEAR(orden.OrderDate) AS Anio,
     proveedor.SupplierID as ProveedorID,
@@ -816,6 +841,9 @@ GROUP BY
     proveedor.SupplierName
 GO
 
+CREATE UNIQUE CLUSTERED INDEX IX_vw_RankingAnualProveedoresOrdenes ON dbo.vw_RankingAnualProveedoresOrdenes(Anio, ProveedorID);
+GO;
+
 
 CREATE PROCEDURE getTopProveedoresOrdenesAnuales
     @FiltrarAnio INT = NULL
@@ -824,7 +852,7 @@ BEGIN
     SET NOCOUNT ON;
 
     SELECT Anio, Ranking, ProveedorID, NombreProveedor, GananciaTotal
-    FROM vw_RankingAnualProveedoresOrdenes
+    FROM dbo.vw_RankingAnualProveedoresOrdenes
     WHERE (
         Ranking <= 5
         AND (@FiltrarAnio IS NULL OR Anio = @FiltrarAnio))

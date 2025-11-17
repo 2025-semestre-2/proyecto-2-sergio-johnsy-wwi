@@ -16,7 +16,7 @@ Otra: li - LI_2025* - 172.20.0.12,1433
 */
 
 const configIPs = {
-    CORP: {ip: "JOHNSY\\CORP", port: 1433, username: "corp", password: "WWI2025*Corp"},
+    CORP: {ip: "localhost", port: 1434, username: "sa", password: "CORP_2025*"},
     SJ: {ip: "localhost", port: 1435, username: "sa", password: "SJ_2025*"},
     LI: {ip: "localhost", port: 1436, username: "sa", password: "LI_2025*"}
 };
@@ -27,6 +27,7 @@ const configCorp = {
     authentication: {
         type: 'default',
         options: {
+            port: configIPs.CORP.port,
             userName: configIPs.CORP.username,
             password: configIPs.CORP.password
         }
@@ -43,6 +44,7 @@ const configSucursal = {
     authentication: {
         type: 'default',
         options: {
+            port: configIPs.SJ.port,
             userName: configIPs.SJ.username,
             password: configIPs.SJ.password
         }
@@ -62,7 +64,10 @@ function ejecutarSP(nombreSP, parametros, req, res, devolver = false, sede = nul
     if (sedeFinal && sedeFinal !== 'CORP') {
       let configSede = { ...configSucursal };
       configSede.options.database = "Sucursal_" + sedeFinal;
-      configSede.server = configIPs[sedeFinal] || configSucursal.server;
+      configSede.server = configIPs[sedeFinal].server || configSucursal.server;
+      configSede.authentication.options.port = configIPs[sedeFinal].port || configSucursal.authentication.options.port;
+      configSede.authentication.options.userName = configIPs[sedeFinal].username || configSucursal.authentication.options.userName;
+      configSede.authentication.options.password = configIPs[sedeFinal].password || configSucursal.authentication.options.password;
       connection = new Connection(configSede);
     }
 

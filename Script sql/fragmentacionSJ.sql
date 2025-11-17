@@ -379,3 +379,5 @@ CREATE TABLE Application.Users(
     HireDate DATE NOT NULL DEFAULT GETDATE()
 )
 GO
+
+
