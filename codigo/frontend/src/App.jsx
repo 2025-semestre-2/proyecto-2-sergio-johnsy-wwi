@@ -20,11 +20,14 @@ import AgregarProducto from './pages/Detalles/AgregarProducto.jsx';
 
 import Error from './pages/Error.jsx';
 import './App.css'
+import { useContext } from 'react';
+import { ErrorContext } from './components/AutoError.jsx';
 
 function App() {
   const location = useLocation();
   const hideNavbar = location.pathname === "/login";
   const navigate = useNavigate();
+  const { triggerError } = useContext(ErrorContext);
 
   useEffect(() => {
     const sesion = localStorage.getItem("sesion");
@@ -40,6 +43,14 @@ function App() {
       navigate("/");
     }
   }, [location, navigate]);
+
+  
+  useEffect(() => {
+    window.addEventListener("unhandledrejection", (ev) => {
+      triggerError(ev.reason?.message || "Error inesperado");
+      navigate("/error");
+    });
+  }, []);
 
   return (
     <>
@@ -62,6 +73,7 @@ function App() {
           <Route path="/inventarios/nuevo" element={<AgregarProducto />} />
 
           <Route path="*" element={<Error />} />
+          <Route path="/error" element={<Error />} />
         </Routes>
     </>
   );

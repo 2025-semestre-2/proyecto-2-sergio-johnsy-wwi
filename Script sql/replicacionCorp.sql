@@ -1,74 +1,199 @@
---Replicaciones entre las 3 bases
+-- 1. LINKED SERVERS 
+IF EXISTS (SELECT 1 FROM sys.servers WHERE name = N'sql_li')
+    EXEC sp_dropserver @server = N'sql_li', @droplogins = 'droplogins';
+GO
 
---configurar el distribuidor, solo en el corporativo
+IF EXISTS (SELECT 1 FROM sys.servers WHERE name = N'sql_sj')
+    EXEC sp_dropserver @server = N'sql_sj', @droplogins = 'droplogins';
+GO
+
+
+EXEC sp_addlinkedserver 
+    @server = N'sql_li',
+    @srvproduct = N'',
+    @provider = N'SQLNCLI',
+    @datasrc = N'172.20.0.12';
+GO
+
+EXEC sp_addlinkedsrvlogin 
+    @rmtsrvname = N'sql_li',
+    @useself = N'False',
+    @locallogin = NULL,
+    @rmtuser = N'sa',
+    @rmtpassword = N'LI_2025';
+GO
+
+EXEC sp_addlinkedserver 
+    @server = N'sql_sj',
+    @srvproduct = N'',
+    @provider = N'SQLNCLI',
+    @datasrc = N'172.20.0.11';
+GO
+
+EXEC sp_addlinkedsrvlogin 
+    @rmtsrvname = N'sql_sj',
+    @useself = N'False',
+    @locallogin = NULL,
+    @rmtuser = N'sa',
+    @rmtpassword = N'SJ_2025*';
+GO
+
+
+-- En el nodo que será distribuidor
 USE [master];
+DECLARE @distributor SYSNAME = @@SERVERNAME;
+DECLARE @password SYSNAME = N'WWI2025*Corp';
 
-DECLARE @distributor AS SYSNAME;
-DECLARE @password AS SYSNAME;
-SET @distributor = @@SERVERNAME;
-SET @password = N'WWI2025Corp*';  -- Cambia el password si es diferente
+-- Agregar distribuidor
+EXEC sp_adddistributor 
+    @distributor = @distributor, 
+    @password = @password;
 
--- Configurar el distribuidor
-EXECUTE sp_adddistributor
-    @distributor = @distributor,
+-- Crear base de datos de distribución
+EXEC sp_adddistributiondb 
+    @database = N'distribution', 
+    @data_folder = N'C:\Program Files\Microsoft SQL Server\MSSQL16.CORP\MSSQL\DATA', 
+    @log_folder = N'C:\Program Files\Microsoft SQL Server\MSSQL16.CORP\MSSQL\DATA', 
+    @security_mode = 0,
+	@login = N'corp',
     @password = @password;
 GO
 
--- Crear la base de datos de distribución
-EXEC sp_adddistributiondb 
-    @database = N'distribution', 
-    @data_folder = N'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\DATA', 
-    @log_folder = N'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\DATA', 
-    @log_file_size = 2, 
-    @min_distretention = 0, 
-    @max_distretention = 72, 
-    @history_retention = 48, 
-    @deletebatchsize_xact = 5000, 
-    @deletebatchsize_cmd = 2000, 
-    @security_mode = 1;
-GO
 
--- Se crea el publicador
---si da error de carpeta crear en esta ruta
---C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL la carpeta ReplData 
---y darle permisos de lectura y escritura
+
+
+
 
 USE [distribution];
-
-IF (NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'UIProperties' AND type = 'U')) 
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'UIProperties' AND type = 'U ')
     CREATE TABLE UIProperties(id INT);
+IF EXISTS (SELECT * FROM ::fn_listextendedproperty('SnapshotFolder', 'user', 'dbo', 'table', 'UIProperties', NULL, NULL))
+    EXEC sp_updateextendedproperty N'SnapshotFolder', N'C:\Program Files\Microsoft SQL Server\MSSQL16.CORP\MSSQL\repldata', 'user', dbo, 'table', 'UIProperties';
+ELSE
+    EXEC sp_addextendedproperty N'SnapshotFolder', N'C:\Program Files\Microsoft SQL Server\MSSQL16.CORP\MSSQL\repldata', 'user', dbo, 'table', 'UIProperties';
 
-IF (EXISTS (SELECT * FROM ::fn_listextendedproperty('SnapshotFolder', 'user', 'dbo', 'table', 'UIProperties', NULL, NULL))) 
-    EXEC sp_updateextendedproperty 
-        N'SnapshotFolder', 
-        N'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\ReplData', 
-        'user', dbo, 'table', 'UIProperties';
-ELSE 
-    EXEC sp_addextendedproperty 
-        N'SnapshotFolder', 
-        N'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\ReplData', 
-        'user', dbo, 'table', 'UIProperties';
-GO
-
-DECLARE @publisher SYSNAME;
-DECLARE @distributorlogin AS SYSNAME;
-DECLARE @distributorpassword AS SYSNAME;
-SET @publisher = @@SERVERNAME;
-SET @distributorlogin = N'corp';
-SET @distributorpassword = N'WWI2025Corp*';
-
+DECLARE @publisher SYSNAME = @@SERVERNAME;
+DECLARE @password SYSNAME = N'WWI2025*Corp';
 EXEC sp_adddistpublisher 
     @publisher = @publisher, 
     @distribution_db = N'distribution', 
     @security_mode = 0, 
-    @login = @distributorlogin, 
-    @password = @distributorpassword, 
-    @working_directory = N'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\ReplData', 
+    @login = N'corp', 
+    @password = @password,
+    @working_directory = N'C:\Program Files\Microsoft SQL Server\MSSQL16.CORP\MSSQL\repldata', 
     @trusted = N'false', 
-    @thirdparty_flag = 0, 
     @publisher_type = N'MSSQLSERVER';
+
+
+
+
 GO
 
 
 
--- Crear la publicacion desde el ssms, en los tres servidores
+
+
+
+
+
+
+
+-- 6. Desde el nodo que creó la publicación
+
+
+USE [Corporativo];
+
+EXEC sp_addsubscription 
+	@publication = N'RepliCorp', 
+	@subscriber = N'sql_li', 
+	@destination_db = N'Sucursal_LI', 
+	@subscription_type = N'Push',
+	@sync_type = N'replication support only',
+	@article = N'all', @update_mode = N'read only',
+	@subscriber_type = 0;
+
+EXEC sp_addpushsubscription_agent 
+	@publication = N'RepliCorp', 
+	@subscriber = N'sql_li', 
+	@subscriber_db = N'Sucursal_LI', 
+	@job_login = NULL, 
+	@job_password = NULL, 
+	@subscriber_security_mode = 0,
+	@subscriber_login = N'sa',        
+    @subscriber_password = N'LI_2025*',
+	@frequency_type = 64, 
+	@frequency_interval = 0,
+	@frequency_relative_interval = 0,
+	@frequency_recurrence_factor = 0, 
+	@frequency_subday = 0, 
+	@frequency_subday_interval = 0,
+	@active_start_time_of_day = 0,
+	@active_end_time_of_day = 235959, 
+	@active_start_date = 20241023,
+	@active_end_date = 99991231,
+	@enabled_for_syncmgr = N'False',
+	@dts_package_location = N'Distributor';
+
+-- Suscriptor: CORP
+EXEC sp_addsubscription 
+	@publication = N'RepliCorp', 
+	@subscriber = N'sql_sj', 
+	@destination_db = N'Sucursal_SJ', 
+	@subscription_type = N'Push',
+	@sync_type = N'replication support only',
+	@article = N'all', @update_mode = N'read only',
+	@subscriber_type = 0;
+
+EXEC sp_addpushsubscription_agent 
+	@publication = N'RepliCorp', 
+	@subscriber = N'sql_sj', 
+	@subscriber_db = N'Sucursal_SJ', 
+	@job_login = NULL, 
+	@job_password = NULL, 
+	@subscriber_security_mode = 0,
+	@subscriber_login = N'sa',        
+    @subscriber_password = N'SJ_2025*',
+	@frequency_type = 64, 
+	@frequency_interval = 0,
+	@frequency_relative_interval = 0,
+	@frequency_recurrence_factor = 0, 
+	@frequency_subday = 0, 
+	@frequency_subday_interval = 0,
+	@active_start_time_of_day = 0,
+	@active_end_time_of_day = 235959, 
+	@active_start_date = 20241023,
+	@active_end_date = 99991231,
+	@enabled_for_syncmgr = N'False',
+	@dts_package_location = N'Distributor';
+GO
+
+
+DROP DATABASE Corporativo
+
+
+
+
+USE distribution;
+SELECT * FROM MSpublications;
+SELECT * FROM MSsubscriptions;
+
+
+DELETE FROM MSsubscriptions
+DELETE FROM MSpublications
+
+USE master;
+
+EXEC sp_dropdistpublisher @publisher = N'CORP'
+
+EXEC sp_dropdistributiondb @database = N'distribution';
+EXEC sp_dropdistributor @no_checks = 1, @ignore_distributor = 1;
+
+
+
+
+
+
+
+
+
+

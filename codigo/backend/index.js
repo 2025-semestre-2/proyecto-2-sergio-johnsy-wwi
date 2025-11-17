@@ -9,20 +9,26 @@ const port = 3000;
 app.use(express.json());
 app.use(cors());
 
+/*
+Sergio: sj - SJ_2025* - 172.20.0.11,1433
+Johnsy: corp - CORP_2025* - 172.20.0.10,1433
+Otra: li - LI_2025* - 172.20.0.12,1433
+*/
+
 const configIPs = {
-    CORP: "172.22.193.85",
-    SJ: "172.22.193.85",
-    LI: "172.22.193.85"
+    CORP: {ip: "172.20.0.10", port: 1433, username: "corp", password: "CORP_2025*"},
+    SJ: {ip: "172.20.0.11", port: 1433, username: "sj", password: "SJ_2025*"},
+    LI: {ip: "172.20.0.12", port: 1433, username: "sa", password: "LI_2025*"}
 };
 
 //Para Linux
 const configCorp = {
-    server: configIPs.CORP,
+    server: configIPs.CORP.ip,
     authentication: {
         type: 'default',
         options: {
-            userName: 'sa',
-            password: 'Admin2323*'
+            userName: configIPs.CORP.username,
+            password: configIPs.CORP.password
         }
     },
     options: {
@@ -33,16 +39,16 @@ const configCorp = {
 };
 
 const configSucursal = {
-    server: configIPs.SJ,
+    server: configIPs.SJ.ip,
     authentication: {
         type: 'default',
         options: {
-            userName: 'sa',
-            password: 'Admin2323*'
+            userName: configIPs.SJ.username,
+            password: configIPs.SJ.password
         }
     },
     options: {
-        database: 'WideWorldImporters',
+        database: '',
         encrypt: false,
         trustServerCertificate: true
     }

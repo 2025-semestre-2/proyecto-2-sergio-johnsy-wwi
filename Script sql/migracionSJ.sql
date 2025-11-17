@@ -16,7 +16,7 @@ SELECT
     IsExternalLogonProvider, HashedPassword, IsSystemUser, IsEmployee,
     IsSalesperson, UserPreferences, PhoneNumber, FaxNumber, EmailAddress,
     Photo, CustomFields, LastEditedBy
-FROM Corporativo.Application.People;
+FROM [sql_corp].Corporativo.Application.People;
 SET IDENTITY_INSERT Sucursal_SJ.Application.People OFF;
 GO
 

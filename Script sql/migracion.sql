@@ -24,6 +24,9 @@ WHERE StockItemID BETWEEN 1 AND 100;
 GO
 
 
+DELETE FROM Application.People
+
+
 -- Application.People
 SET IDENTITY_INSERT Corporativo.Application.People ON;
 INSERT INTO Corporativo.Application.People (
@@ -132,7 +135,6 @@ SELECT
 FROM WideWorldImporters.Sales.BuyingGroups;
 SET IDENTITY_INSERT Corporativo.Sales.BuyingGroups OFF;
 GO
-
 
 -- Customers (SE FRAGMENTA CON DATOS SENSIBLES)
 -- Sales.Customers
