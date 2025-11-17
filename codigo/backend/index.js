@@ -16,9 +16,9 @@ Otra: li - LI_2025* - 172.20.0.12,1433
 */
 
 const configIPs = {
-    CORP: {ip: "172.20.0.10", port: 1433, username: "corp", password: "CORP_2025*"},
-    SJ: {ip: "172.20.0.11", port: 1433, username: "sj", password: "SJ_2025*"},
-    LI: {ip: "172.20.0.12", port: 1433, username: "sa", password: "LI_2025*"}
+    CORP: {ip: "JOHNSY\\CORP", port: 1433, username: "corp", password: "WWI2025*Corp"},
+    SJ: {ip: "localhost", port: 1435, username: "sa", password: "SJ_2025*"},
+    LI: {ip: "localhost", port: 1436, username: "sa", password: "LI_2025*"}
 };
 
 //Para Linux
@@ -271,9 +271,7 @@ app.get('/api/getTodosGruposProducto', verificarToken, (req, res) => {
   ejecutarSP("getGruposProducto", [], req, res);
 });
 
-
-
-app.put('/api/editarProducto/:id', verificarToken, (req, res) => {
+app.put('/api/editarProducto/:id', verificarToken, async (req, res) => {
   const { id } = req.params;
   const {
     NombreProducto,
@@ -288,30 +286,73 @@ app.put('/api/editarProducto/:id', verificarToken, (req, res) => {
     PrecioVentaRecomendado,
     TasaImpuesto,
     CantidadDisponible,
-    GruposProductoIDs
+    GruposProductoIDs,
+    BinLocation,
+    LastStocktakeQuantity,
+    LastCostPrice,
+    ReorderLevel,
+    TargetStockLevel,
+    Branch
   } = req.body;
+
   if ([NombreProducto, PrecioUnitario, TasaImpuesto].includes(undefined) || NombreProducto.trim() === "") {
     return res.status(400).json({ error: 'Faltan campos obligatorios o están vacíos' });
   }
-  const gruposProductoStr = Array.isArray(GruposProductoIDs) ? JSON.stringify(GruposProductoIDs) : null;
 
-  const parametros = [
-    ["ProductoID", TYPES.Int, parseInt(id)],
-    ["NombreProducto", TYPES.NVarChar, NombreProducto],
-    ["ProveedorID", TYPES.Int, IDProveedor || null],
-    ["Marca", TYPES.NVarChar, Marca || null],
-    ["Tamano", TYPES.NVarChar, Tamano || null],
-    ["ColorID", TYPES.Int, ColorID || null],
-    ["UnidadEmpaquetamientoID", TYPES.Int, UnidadEmpaquetamientoID || null],
-    ["EmpaquetamientoID", TYPES.Int, EmpaquetamientoID || null],
-    ["CantidadPorEmpaquetamiento", TYPES.Int, CantidadPorEmpaquetamiento || null],
-    ["PrecioUnitario", TYPES.Money, PrecioUnitario],
-    ["PrecioVentaRecomendado", TYPES.Money, PrecioVentaRecomendado || null],
-    ["TasaImpuesto", TYPES.Float, TasaImpuesto],
-    ["CantidadDisponible", TYPES.Int, CantidadDisponible || null],
-    ["GruposProductoIDs", TYPES.NVarChar, gruposProductoStr]
-  ]; 
-  ejecutarSP("editarStockItem", parametros, req, res);
+  try {
+    let gruposProductoStr = null;
+    if (Array.isArray(GruposProductoIDs) && GruposProductoIDs.length > 0) {
+      gruposProductoStr = JSON.stringify(GruposProductoIDs);
+    }
+
+    // info del producto
+    const parametrosProducto = [
+      ["ProductoID", TYPES.Int, parseInt(id)],
+      ["NombreProducto", TYPES.NVarChar, NombreProducto],
+      ["Marca", TYPES.NVarChar, Marca || null],
+      ["Tamano", TYPES.NVarChar, Tamano || null],
+      ["ColorID", TYPES.Int, ColorID || null],
+      ["UnidadEmpaquetamientoID", TYPES.Int, UnidadEmpaquetamientoID || null],
+      ["EmpaquetamientoID", TYPES.Int, EmpaquetamientoID || null],
+      ["CantidadPorEmpaquetamiento", TYPES.Int, CantidadPorEmpaquetamiento || null],
+      ["PrecioUnitario", TYPES.Money, PrecioUnitario],
+      ["PrecioVentaRecomendado", TYPES.Money, PrecioVentaRecomendado || null],
+      ["TasaImpuesto", TYPES.Float, TasaImpuesto],
+      ["ProveedorID", TYPES.Int, IDProveedor || null],
+      ["GruposProductoIDs", TYPES.NVarChar, gruposProductoStr]
+    ];
+
+    await ejecutarSP("editarProducto", parametrosProducto, req, res, true);
+
+    // info del inventario (si hay datos de inventario)
+    if (
+      CantidadDisponible != null ||
+      BinLocation != null ||
+      LastStocktakeQuantity != null ||
+      LastCostPrice != null ||
+      ReorderLevel != null ||
+      TargetStockLevel != null ||
+      Branch != null
+    ) {
+      const parametrosInventario = [
+        ["ProductoID", TYPES.Int, parseInt(id)],
+        ["CantidadDisponible", TYPES.Int, CantidadDisponible || null],
+        ["BinLocation", TYPES.NVarChar, BinLocation || null],
+        ["LastStocktakeQuantity", TYPES.Int, LastStocktakeQuantity || null],
+        ["LastCostPrice", TYPES.Money, LastCostPrice || null],
+        ["ReorderLevel", TYPES.Int, ReorderLevel || null],
+        ["TargetStockLevel", TYPES.Int, TargetStockLevel || null],
+        ["Branch", TYPES.NVarChar, Branch || null]
+      ];
+
+      await ejecutarSP("editarInventarioProducto", parametrosInventario, req, res, true);
+    }
+
+    res.json({ Mensaje: "Producto actualizado correctamente" });
+  } catch (error) {
+    console.error("Error en editarProducto:", error);
+    res.status(500).json({ error: "Error al actualizar el producto" });
+  }
 });
 
 
@@ -355,9 +396,9 @@ app.post('/api/insertarProducto', verificarToken, async (req, res) => {
     return res.status(400).json({ error: 'Faltan campos obligatorios o están vacíos' });
   }
 
-  let gruposProductoStr = null
-  if (GruposProductoIDs != [] && GruposProductoIDs != null) {
-    gruposProductoStr = GruposProductoIDs.join(",")
+  let gruposProductoStr = null;
+  if (Array.isArray(GruposProductoIDs) && GruposProductoIDs.length > 0) {
+    gruposProductoStr = JSON.stringify(GruposProductoIDs);
   }
 
   const parametros = [

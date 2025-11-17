@@ -19,19 +19,18 @@ import EditarProducto from './pages/Detalles/EditarProducto.jsx';
 import AgregarProducto from './pages/Detalles/AgregarProducto.jsx';
 
 import Error from './pages/Error.jsx';
+import { useGlobalFetchInterceptor } from "./components/AutoError.jsx";
 import './App.css'
-import { useContext } from 'react';
-import { ErrorContext } from './components/AutoError.jsx';
 
 function App() {
   const location = useLocation();
-  const hideNavbar = location.pathname === "/login";
+  const hideNavbar = location.pathname === "/login" || location.pathname === "/error";
   const navigate = useNavigate();
-  const { triggerError } = useContext(ErrorContext);
+  useGlobalFetchInterceptor();
 
   useEffect(() => {
     const sesion = localStorage.getItem("sesion");
-    if (!sesion && location.pathname !== "/login") {
+    if (!sesion && (location.pathname !== "/login" && location.pathname !== "/error")) {
       navigate("/login");
     }
     let sede = "Sin sede";
@@ -44,13 +43,6 @@ function App() {
     }
   }, [location, navigate]);
 
-  
-  useEffect(() => {
-    window.addEventListener("unhandledrejection", (ev) => {
-      triggerError(ev.reason?.message || "Error inesperado");
-      navigate("/error");
-    });
-  }, []);
 
   return (
     <>

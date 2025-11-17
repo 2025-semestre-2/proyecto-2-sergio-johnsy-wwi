@@ -1,22 +1,43 @@
-import { createBrowserHistory } from "history";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
-const history = createBrowserHistory();
-const originalFetch = window.fetch;
+export function useGlobalFetchInterceptor() {
+  const navigate = useNavigate();
 
-window.fetch = async (...args) => {
-  try {
-    const response = await originalFetch(...args);
+  useEffect(() => {
+    const originalFetch = window.fetch;
 
-    if (!response.ok) {
-      // Leemos el error del backend
-      const text = await response.text();
+    window.fetch = async (...args) => {
+      try {
+        const response = await originalFetch(...args);
 
-      // Redirigir a /error con el mensaje
-      history.push(`/error?msg=${encodeURIComponent(text)}`);
-    }
+        if (!response.ok) {
+          let errorMessage = `Error ${response.status} (${response.statusText})`;
 
-    return response;
-  } catch (err) {
-    history.push(`/error?msg=${encodeURIComponent(err.message)}`);
-  }
-};
+          try {
+            // Intentar leer JSON
+            const data = await response.clone().json();
+            if (data?.message) errorMessage = data.message;
+            else if (typeof data === "string") errorMessage = data;
+          } catch {
+            // Si no es JSON, intentar texto
+            try {
+              const text = await response.clone().text();
+              if (text.trim()) errorMessage = text;
+            } catch {}
+          }
+
+          navigate(`/error?msg=${encodeURIComponent(errorMessage)}`);
+        }
+
+        return response;
+      } catch (err) {
+        navigate(`/error?msg=${encodeURIComponent(err.message || "Error de conexión")}`);
+      }
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [navigate]);
+}

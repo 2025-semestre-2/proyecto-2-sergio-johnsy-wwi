@@ -1,12 +1,13 @@
 .error-page {
   display: flex;
   justify-content: center;
+  position: relative;
   align-items: center;
   height: 100vh;
   background: #f0f2f5;
   font-family: Arial, sans-serif;
-  padding: 20px;
   text-align: center;
+  overflow: hidden;
 }
 
 .error-content {
