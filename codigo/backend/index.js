@@ -21,36 +21,19 @@ const configIPs = {
     LI: {ip: "localhost", port: 1436, username: "sa", password: "LI_2025*"}
 };
 
-//Para Linux
-const configCorp = {
+
+const configSucursal = {
     server: configIPs.CORP.ip,
     authentication: {
         type: 'default',
         options: {
-            port: configIPs.CORP.port,
             userName: configIPs.CORP.username,
             password: configIPs.CORP.password
         }
     },
     options: {
+        port: configIPs.CORP.port,
         database: 'Corporativo',
-        encrypt: false,
-        trustServerCertificate: true
-    }
-};
-
-const configSucursal = {
-    server: configIPs.SJ.ip,
-    authentication: {
-        type: 'default',
-        options: {
-            port: configIPs.SJ.port,
-            userName: configIPs.SJ.username,
-            password: configIPs.SJ.password
-        }
-    },
-    options: {
-        database: '',
         encrypt: false,
         trustServerCertificate: true
     }
@@ -59,17 +42,22 @@ const configSucursal = {
 function ejecutarSP(nombreSP, parametros, req, res, devolver = false, sede = null) {
   return new Promise((resolve, reject) => {
     const resultados = [];
-    const sedeFinal = sede || (req.user ? req.user.sede : null);
-    let connection = new Connection(configCorp);
+    let sedeFinal = sede || (req.user ? req.user.sede : null);
+    let connection = null;
+    
+    let configSede = { ...configSucursal };
     if (sedeFinal && sedeFinal !== 'CORP') {
-      let configSede = { ...configSucursal };
       configSede.options.database = "Sucursal_" + sedeFinal;
-      configSede.server = configIPs[sedeFinal].server || configSucursal.server;
-      configSede.authentication.options.port = configIPs[sedeFinal].port || configSucursal.authentication.options.port;
-      configSede.authentication.options.userName = configIPs[sedeFinal].username || configSucursal.authentication.options.userName;
-      configSede.authentication.options.password = configIPs[sedeFinal].password || configSucursal.authentication.options.password;
-      connection = new Connection(configSede);
+    } else {
+      configSede.options.database = "Corporativo";
+      sedeFinal = 'CORP';
     }
+    configSede.server = configIPs[sedeFinal].ip || configSucursal.server;
+    configSede.options.port = configIPs[sedeFinal].port || configSucursal.options.port;
+    configSede.authentication.options.userName = configIPs[sedeFinal].username || configSucursal.authentication.options.userName;
+    configSede.authentication.options.password = configIPs[sedeFinal].password || configSucursal.authentication.options.password;
+    console.log("Configuración de conexión para sede:", sedeFinal, configSede);
+    connection = new Connection(configSede);
 
     console.log(`Ejecutando SP: ${nombreSP} en sede: ${sedeFinal || 'Corporativo'}`);
 
